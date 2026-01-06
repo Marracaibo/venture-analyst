@@ -31,6 +31,41 @@ const init: StartupInput = {
   needsCto: false, needsCmo: false, needsCfo: false
 };
 
+// DEMO PRESETS for testing
+const DEMO_CORE: StartupInput = {
+  nome: 'Mizan AI', businessModel: 'b2b2c', verticale: 'legaltech', fase: 'revenue', capTable: 'founder-advisor',
+  competizione: 'affollato', coachability: 'alta', descrizione: 'Piattaforma AI per ricerca legale automatizzata. Riduce del 70% il tempo di ricerca precedenti per avvocati.',
+  team: { foundersCount: 2, fullTime: true, techInHouse: true },
+  problemDescription: 'Gli avvocati italiani perdono 3+ ore al giorno a cercare precedenti legali su database obsoleti. Il 60% delle ricerche non porta risultati utili, causando perdita di tempo e opportunità.',
+  currentAlternatives: 'Ricerca manuale su DeJure, Westlaw Italia, LexisNexis. Costi elevati (500-1000€/mese), interfacce datate, nessuna AI.',
+  marketDescription: 'Mercato legaltech italiano: 800M€, crescita 15% annuo. 250.000 avvocati in Italia. Competitor principali: DeJure (leader storico), Wolters Kluwer. Nessuno usa AI generativa.',
+  targetCustomer: 'Studi legali medio-grandi (10-50 avvocati) con focus su contenzioso civile e commerciale. Fatturato 1-10M€, digitalizzati.',
+  uniquenessDescription: 'Modello AI proprietario addestrato su 150.000 sentenze italiane. Deep integration con workflow avvocati. Unica soluzione che genera bozze di atti.',
+  competitiveAdvantage: 'First mover AI in Italia. Partnership esclusiva con Ordine Avvocati Milano. Team: ex Giuffré + AI engineers da Google.',
+  revenueModel: 'SaaS subscription: 149€/mese per avvocato, tier Enterprise 899€/mese unlimited. Target ACV: 8.000€.',
+  unitEconomics: 'CAC: 180€ via LinkedIn + eventi. LTV: 4.500€ (30 mesi avg). Margine lordo: 85%. LTV:CAC = 25:1.',
+  tractionDescription: '15 studi paganti, 4.500€ MRR, crescita 30% mese. 200 in waitlist. 3 top-50 studi in trial. NPS: 72.',
+  customersCount: 15, mrrCurrent: 4500, cacEstimate: 180, ltvEstimate: 4500,
+  needsCto: false, needsCmo: true, needsCfo: false
+};
+
+const DEMO_SATELLITE: StartupInput = {
+  nome: 'FitMeal', businessModel: 'b2c', verticale: 'foodtech', fase: 'mvp', capTable: 'solo-founder',
+  competizione: 'affollato', coachability: 'media', descrizione: 'App per meal planning personalizzato con AI. Genera piani alimentari settimanali basati su preferenze e obiettivi.',
+  team: { foundersCount: 1, fullTime: true, techInHouse: false },
+  problemDescription: 'Le persone vogliono mangiare sano ma non sanno cosa cucinare. Passano 30+ minuti a decidere cosa mangiare ogni giorno.',
+  currentAlternatives: 'App generiche come MyFitnessPal, blog di ricette, nutrizionisti (costosi). Nessuno offre pianificazione automatica personalizzata.',
+  marketDescription: 'Mercato wellness/nutrition app: 5B€ globale, Italia 200M€. Competitor: Yazio, Lifesum, MyFitnessPal. Mercato affollato ma frammentato.',
+  targetCustomer: 'Millennials 25-40 attenti alla salute, reddito medio-alto, poco tempo per cucinare. 80% donne.',
+  uniquenessDescription: 'AI che impara dai gusti e genera ricette nuove. Integrazione con supermercati per lista spesa automatica.',
+  competitiveAdvantage: 'Team con background food tech. Database 10.000 ricette italiane. Partnership con Esselunga in discussione.',
+  revenueModel: 'Freemium: base gratis, Premium 9.99€/mese con AI illimitata e lista spesa.',
+  unitEconomics: 'CAC stimato 15€ via Instagram ads. LTV stimato 60€ (6 mesi avg). Conversion freemium: 5%.',
+  tractionDescription: '500 download beta, 50 utenti attivi settimanali. 10 utenti paganti. Feedback positivo ma retention da migliorare.',
+  customersCount: 10, mrrCurrent: 100, cacEstimate: 15, ltvEstimate: 60,
+  needsCto: true, needsCmo: false, needsCfo: false
+};
+
 export default function ScreenerPage() {
   const [s, setS] = useState(0);
   const [inp, setInp] = useState<StartupInput>(init);
@@ -139,7 +174,16 @@ export default function ScreenerPage() {
           ) : (
             <motion.div key={s} initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="space-y-6">
               <div className="text-center"><h2 className="text-xl font-bold text-white mb-1">{titles[s]}</h2></div>
-              {s === 0 && <div className="max-w-sm mx-auto"><input type="text" value={inp.nome} onChange={e => setInp({...inp, nome: e.target.value})} placeholder="Nome startup" className="w-full px-4 py-3 bg-slate-800/50 border border-slate-700 rounded-xl text-white text-center focus:border-violet-500 focus:outline-none" autoFocus /></div>}
+              {s === 0 && <div className="max-w-sm mx-auto space-y-4">
+                <input type="text" value={inp.nome} onChange={e => setInp({...inp, nome: e.target.value})} placeholder="Nome startup" className="w-full px-4 py-3 bg-slate-800/50 border border-slate-700 rounded-xl text-white text-center focus:border-violet-500 focus:outline-none" autoFocus />
+                <div className="pt-4 border-t border-slate-700/50">
+                  <p className="text-xs text-slate-500 text-center mb-3">Demo per testing</p>
+                  <div className="grid grid-cols-2 gap-2">
+                    <button onClick={() => { setInp(DEMO_CORE); setS(10); }} className="px-3 py-2 bg-emerald-500/20 border border-emerald-500/50 rounded-lg text-emerald-400 text-xs font-medium hover:bg-emerald-500/30">🚀 Demo CORE (Mizan)</button>
+                    <button onClick={() => { setInp(DEMO_SATELLITE); setS(10); }} className="px-3 py-2 bg-amber-500/20 border border-amber-500/50 rounded-lg text-amber-400 text-xs font-medium hover:bg-amber-500/30">📡 Demo SATELLITE (FitMeal)</button>
+                  </div>
+                </div>
+              </div>}
               {s === 1 && <div className="grid grid-cols-3 gap-3 max-w-lg mx-auto">{(['b2b','b2c','b2b2c'] as BusinessModel[]).map(bm => { const c = BM_CFG[bm]; return <button key={bm} onClick={() => setInp({...inp, businessModel: bm})} className={'p-4 rounded-xl border-2 text-center ' + (inp.businessModel === bm ? 'border-violet-500 bg-violet-500/20' : 'border-slate-700')}><c.I className="w-8 h-8 mx-auto mb-2 text-violet-400" /><div className="font-bold text-white">{c.l}</div><div className="text-xs text-slate-400">{c.d}</div></button>})}</div>}
               {s === 2 && <div className="space-y-4"><div className="relative max-w-sm mx-auto"><Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" /><input type="text" value={srch} onChange={e => setSrch(e.target.value)} placeholder="Cerca..." className="w-full pl-10 pr-10 py-2.5 bg-slate-800/50 border border-slate-700 rounded-xl text-white text-sm focus:border-violet-500 focus:outline-none" />{srch && <button onClick={() => setSrch('')} className="absolute right-3 top-1/2 -translate-y-1/2"><X className="w-4 h-4 text-slate-500" /></button>}</div>{selSett && !srch && <div className="text-center"><span className="inline-flex items-center gap-2 px-4 py-2 bg-violet-500/20 border border-violet-500/50 rounded-full text-violet-300">{selSett.icon} {selSett.label}</span></div>}<div className="grid grid-cols-4 gap-2 max-h-60 overflow-y-auto">{fSett.map(st => <button key={st.id} onClick={() => { setInp({...inp, verticale: st.id}); setSrch(''); }} className={'p-2 rounded-lg border text-center ' + (inp.verticale === st.id ? 'border-violet-500 bg-violet-500/20' : 'border-slate-700/50')}><div className="text-lg">{st.icon}</div><div className="text-xs text-white">{st.label}</div></button>)}</div></div>}
               {s === 3 && <div className="grid grid-cols-2 gap-3 max-w-md mx-auto">{FASE_CFG.map(o => <button key={o.v} onClick={() => setInp({...inp, fase: o.v as FaseAttuale})} className={'p-4 rounded-xl border-2 text-center ' + (inp.fase === o.v ? 'border-violet-500 bg-violet-500/20' : 'border-slate-700')}><o.I className="w-6 h-6 mx-auto mb-1 text-violet-400" /><div className="font-medium text-white">{o.l}</div><div className="text-xs text-slate-400">{o.d}</div></button>)}</div>}
