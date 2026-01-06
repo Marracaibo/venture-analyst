@@ -363,21 +363,28 @@ ${input.descrizione || 'Non fornita'}
     let verdettoLabel = 'Satellite Partnership';
     let reasoning = '';
 
-    // Kill switches
+    // Kill switches - fattori che bloccano CORE
     const killSwitches: string[] = [];
     if (!isCoachable) killSwitches.push('Coachability bassa - founder non ricettivo');
     if (!isCapTableClean) killSwitches.push('Cap Table problematica');
     if (passedCount < 3) killSwitches.push(`Solo ${passedCount}/5 filtri superati`);
 
-    if (killSwitches.length > 0 && passedCount < 3) {
+    // LOGICA VERDETTO:
+    // REJECT: meno di 3 filtri passati O kill switches critici
+    // CORE: 4+ filtri, cap table pulita, coachable
+    // SATELLITE: tutto il resto
+    
+    if (passedCount < 3 || (killSwitches.length >= 2)) {
       verdetto = 'REJECT';
       verdettoLabel = 'Non Idonea';
       reasoning = `La startup non supera i criteri minimi. ${aiFiltersResult?.overallAssessment || ''}`;
-    } else if (passedCount >= 4 && isCoachable && isCapTableClean && (input.needsCto || input.needsCmo || input.needsCfo)) {
+    } else if (passedCount >= 4 && isCoachable && isCapTableClean) {
+      // 4+ filtri + no kill switches = CORE
       verdetto = 'CORE';
       verdettoLabel = 'Core Acceleration';
       reasoning = `Startup con forte potenziale (${passedCount}/5 filtri). ${aiFiltersResult?.overallAssessment || ''}`;
     } else {
+      // 3 filtri O ha qualche kill switch
       verdetto = 'SATELLITE';
       verdettoLabel = 'Satellite Partnership';
       reasoning = `${passedCount}/5 filtri superati. ${aiFiltersResult?.overallAssessment || 'Possiamo supportare con servizi mirati.'}`;
