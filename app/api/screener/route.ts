@@ -149,7 +149,10 @@ Se un task richiede competenze NON presenti nel team, scrivi "ESTERNO" come resp
   - Deliverable specifico
   - Timeline realistica
   - Chi lo fa (Riccardo/Alessandro/Amin/ESTERNO)
-- **PRICING**: CORE 18-25%, GROWTH 8-15%, BOOST 3-7%
+- **PRICING BASATO SUL VERDETTO**:
+  - Se verdetto è CORE: Forge Studio diventa CO-FOUNDER → **60-80% equity** (costruiamo insieme la startup)
+  - Se verdetto è SATELLITE: Partnership operativa → **15-25% equity** (supporto intensivo ma non co-founding)
+  - Servizi singoli (add-on): **3-8% equity**
 
 ## REGOLE PROSSIMI PASSI
 
@@ -206,8 +209,8 @@ Rispondi SOLO in italiano.
           "owner": "Riccardo"
         }
       ],
-      "prezzo": "5-8% Equity",
-      "rationale": "Questo pacchetto è essenziale perché la startup ha un prodotto tech ma manca completamente di validazione commerciale. Riccardo con i suoi 20 anni di esperienza sales può accelerare drasticamente il time-to-market."
+      "prezzo": "15-20% Equity",
+      "rationale": "Questo pacchetto è per una startup SATELLITE che ha un prodotto tech ma manca di validazione commerciale. Per una startup CORE il prezzo sarebbe 60-80% perché diventiamo co-founder."
     }
   ],
   "next90Days": [
@@ -271,7 +274,13 @@ Rispondi SOLO in italiano.
   "verdict_adjustment": ""
 }
 
-IMPORTANTE: Genera ESATTAMENTE questo formato. Ogni item DEVE avere tutti i campi (titolo, descrizione lunga, steps array, deliverable, timeline, owner). NON abbreviare.`;
+IMPORTANTE: 
+- Genera ESATTAMENTE questo formato
+- Ogni item DEVE avere tutti i campi (titolo, descrizione lunga, steps array, deliverable, timeline, owner)
+- Il PREZZO deve riflettere il VERDETTO:
+  * CORE → 60-80% equity (co-founding, costruiamo insieme)
+  * SATELLITE → 15-25% equity (partnership operativa)
+- NON abbreviare.`;
 
 export async function POST(request: NextRequest) {
   try {
