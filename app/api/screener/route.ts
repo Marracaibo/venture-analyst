@@ -4,8 +4,10 @@ import { StartupInput, ScreenerResult, VERTICALE_LABELS, FASE_LABELS, CAPTABLE_L
 
 const client = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY,
-  baseURL: 'https://api.anthropic.com',
 });
+
+// Use Haiku for speed (completes in <30 seconds)
+const FAST_MODEL = 'claude-3-5-haiku-20241022';
 
 // PROMPT per valutazione oggettiva dei 5 filtri
 const FILTERS_EVALUATION_PROMPT = `Sei un Venture Analyst esperto. Valuta OGGETTIVAMENTE questa startup sui 5 filtri chiave.
@@ -332,8 +334,8 @@ ${input.descrizione || 'Non fornita'}
 `;
 
         const filtersResponse = await client.messages.create({
-          model: 'claude-sonnet-4-20250514',
-          max_tokens: 1500,
+          model: FAST_MODEL,
+          max_tokens: 1000,
           messages: [
             {
               role: 'user',
@@ -449,8 +451,8 @@ ${baseResult.killSwitches.length > 0 ? `Kill Switches attivati: ${baseResult.kil
 `;
 
         const message = await client.messages.create({
-          model: 'claude-sonnet-4-20250514',
-          max_tokens: 8000,
+          model: FAST_MODEL,
+          max_tokens: 4000,
           messages: [
             {
               role: 'user',
