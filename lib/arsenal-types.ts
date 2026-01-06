@@ -215,7 +215,7 @@ export const ARSENAL_ITEMS: ArsenalItem[] = [
     description: 'Pagina web completa pronta per il deploy',
     icon: '🌐',
     category: 'attack',
-    estimatedTime: 'istantaneo',
+    estimatedTime: '~15 sec',
     outputType: 'code',
     howItWorks: 'L\'AI analizza la tua idea, il problema che risolvi e il target per creare una landing page completa con copy persuasivo, sezioni ottimizzate per la conversione e codice HTML/TailwindCSS pronto da deployare.',
     whatYouGet: ['Hero section con headline e CTA', 'Sezione problema/soluzione', '3 testimonial realistici', 'Pricing table', 'FAQ section', 'Codice HTML completo']
@@ -226,7 +226,7 @@ export const ARSENAL_ITEMS: ArsenalItem[] = [
     description: '3 sequenze email con A/B test variants',
     icon: '📧',
     category: 'attack',
-    estimatedTime: 'istantaneo',
+    estimatedTime: '~15 sec',
     outputType: 'text',
     howItWorks: 'Genera 3 sequenze email complete (cold outreach, follow-up post-demo, nurturing) con subject line A/B tested, body copy personalizzabile e timing ottimale per ogni invio.',
     whatYouGet: ['5 email cold outreach', '4 email post-demo', '6 email nurturing', 'Varianti A/B per subject', 'Template variabili', 'Best practices']
@@ -237,7 +237,7 @@ export const ARSENAL_ITEMS: ArsenalItem[] = [
     description: '30 giorni di post + ottimizzazione profilo',
     icon: '💼',
     category: 'attack',
-    estimatedTime: 'istantaneo',
+    estimatedTime: '~15 sec',
     outputType: 'text',
     howItWorks: 'Crea un piano editoriale completo per LinkedIn con post giornalieri, carousel template, poll strategici e ottimizzazione del profilo per posizionarti come thought leader nel tuo settore.',
     whatYouGet: ['30 post completi con hook', '5 carousel template', '4 poll strategici', 'Headline e About ottimizzati', 'Hashtag strategy', 'Orari migliori di posting']
@@ -248,7 +248,7 @@ export const ARSENAL_ITEMS: ArsenalItem[] = [
     description: 'Script per call, DM e video pitch',
     icon: '🎤',
     category: 'attack',
-    estimatedTime: 'istantaneo',
+    estimatedTime: '~15 sec',
     outputType: 'text',
     howItWorks: 'Genera script collaudati per cold call, messaggi DM su LinkedIn/Instagram e video pitch, con gestione obiezioni e tecniche di chiusura per massimizzare il tasso di conversione.',
     whatYouGet: ['Script cold call completo', '5 DM sequence template', 'Video pitch 90 secondi', 'Elevator pitch 30 sec', '10 obiezioni + risposte', 'Voicemail script']
@@ -261,7 +261,7 @@ export const ARSENAL_ITEMS: ArsenalItem[] = [
     description: '25 investitori ideali con contatti',
     icon: '🎯',
     category: 'fundraising',
-    estimatedTime: 'istantaneo',
+    estimatedTime: '~15 sec',
     outputType: 'text',
     howItWorks: 'Analizza il tuo settore, stage e business model per identificare 25 investitori (VC, Angel, Corporate) che hanno già investito in startup simili, con strategia di contatto personalizzata.',
     whatYouGet: ['8 investitori perfect fit', '10 good fit', '7 worth a try', 'LinkedIn + email pattern', 'Strategia warm intro', 'Template outreach email']
@@ -272,7 +272,7 @@ export const ARSENAL_ITEMS: ArsenalItem[] = [
     description: '12 slide stile YC con contenuti',
     icon: '📊',
     category: 'fundraising',
-    estimatedTime: 'istantaneo',
+    estimatedTime: '~15 sec',
     outputType: 'text',
     howItWorks: 'Crea la struttura completa di un pitch deck da 12 slide seguendo il format Y Combinator, con contenuti specifici per ogni slide, speaker notes e suggerimenti di design.',
     whatYouGet: ['12 slide con contenuto', 'Speaker notes (60 sec/slide)', 'Suggerimenti visual', 'Struttura problema→soluzione', 'Slide financials', 'CTA e ask finale']
@@ -283,7 +283,7 @@ export const ARSENAL_ITEMS: ArsenalItem[] = [
     description: 'Proiezioni 3 anni + unit economics',
     icon: '💰',
     category: 'fundraising',
-    estimatedTime: 'istantaneo',
+    estimatedTime: '~15 sec',
     outputType: 'spreadsheet',
     howItWorks: 'Costruisce un modello finanziario completo con assumptions modificabili, proiezioni revenue 3 anni, unit economics dettagliati e scenari di funding alternativi.',
     whatYouGet: ['20+ assumptions editabili', 'Proiezioni mensili Y1', 'Proiezioni trimestrali Y2-3', 'CAC/LTV/Payback analysis', '3 scenari funding', 'Formula Google Sheets']
@@ -294,7 +294,7 @@ export const ARSENAL_ITEMS: ArsenalItem[] = [
     description: '30 domande killer + risposte ideali',
     icon: '🥊',
     category: 'fundraising',
-    estimatedTime: 'istantaneo',
+    estimatedTime: '~15 sec',
     outputType: 'interactive',
     howItWorks: 'Prepara alle domande più difficili dei VC con 30 domande categorizzate per topic, risposte ideali strutturate, red flags da evitare e scenari di pratica con diversi tipi di investitori.',
     whatYouGet: ['30 domande killer', 'Risposte ideali complete', 'Red flags da evitare', '3 scenari di pratica', 'Framework STAR', '10 errori fatali']
@@ -305,7 +305,7 @@ export const ARSENAL_ITEMS: ArsenalItem[] = [
     description: 'Report completo 1-pager per investitori',
     icon: '📄',
     category: 'fundraising',
-    estimatedTime: 'istantaneo',
+    estimatedTime: '~15 sec',
     outputType: 'text',
     howItWorks: 'Genera un Executive Summary professionale di 1-2 pagine che sintetizza tutti i dati dell\'analisi in un formato pronto per investitori, advisor o board members.',
     whatYouGet: ['One-pager professionale', 'Problem/Solution', 'Market opportunity', 'Business model', 'Traction highlights', 'Team overview', 'Ask & use of funds']
@@ -318,7 +318,7 @@ export const ARSENAL_ITEMS: ArsenalItem[] = [
     description: '4 script per customer discovery',
     icon: '🎙️',
     category: 'validation',
-    estimatedTime: 'istantaneo',
+    estimatedTime: '~15 sec',
     outputType: 'text',
     howItWorks: 'Genera 4 script di intervista completi per validare problema, soluzione, pricing e competitor, con domande strutturate, follow-up e segnali green/red flag da identificare.',
     whatYouGet: ['Script problem discovery', 'Script solution validation', 'Script pricing test', 'Script competitor intel', 'Template recruitment', 'Framework sintesi']
@@ -329,7 +329,7 @@ export const ARSENAL_ITEMS: ArsenalItem[] = [
     description: '10 esperimenti prioritizzati + Notion template',
     icon: '🧪',
     category: 'validation',
-    estimatedTime: 'istantaneo',
+    estimatedTime: '~15 sec',
     outputType: 'text',
     howItWorks: 'Crea 10 esperimenti di growth prioritizzati con ICE score, ipotesi strutturate, metriche target e un template Notion pronto da importare per tracciare i risultati.',
     whatYouGet: ['10 esperimenti dettagliati', 'ICE score per priorità', 'Metriche e target', 'Timeline 90 giorni', 'Template Notion', 'North star metric']
@@ -340,7 +340,7 @@ export const ARSENAL_ITEMS: ArsenalItem[] = [
     description: 'Questionario validazione + landing',
     icon: '📋',
     category: 'validation',
-    estimatedTime: 'istantaneo',
+    estimatedTime: '~15 sec',
     outputType: 'text',
     howItWorks: 'Crea un questionario di validazione completo con domande di screening, Van Westendorp pricing, e strategia di distribuzione per raccogliere feedback significativo.',
     whatYouGet: ['20+ domande strutturate', 'Screening questions', 'Van Westendorp pricing', 'Template Typeform', 'Sample size calculator', 'Distribution strategy']
@@ -353,7 +353,7 @@ export const ARSENAL_ITEMS: ArsenalItem[] = [
     description: 'Tracking sheet + alert keywords',
     icon: '📡',
     category: 'growth',
-    estimatedTime: 'istantaneo',
+    estimatedTime: '~15 sec',
     outputType: 'spreadsheet',
     howItWorks: 'Mappa 5-7 competitor con analisi dettagliata di pricing, feature, funding e team. Include matrice comparativa, Google Alerts keywords e opportunità di differenziazione.',
     whatYouGet: ['5-7 competitor analizzati', 'Feature comparison matrix', 'Pricing comparison', 'Alert keywords', 'Template Google Sheets', 'Gap analysis']
@@ -364,7 +364,7 @@ export const ARSENAL_ITEMS: ArsenalItem[] = [
     description: 'Roadmap 12 mesi ultra-dettagliata con milestones',
     icon: '🗺️',
     category: 'growth',
-    estimatedTime: 'istantaneo',
+    estimatedTime: '~15 sec',
     outputType: 'text',
     howItWorks: 'Genera una roadmap completa a 12 mesi basata sull\'analisi della tua startup. Include milestones settimanali, OKR trimestrali, dipendenze tra task, risorse necessarie e criteri di successo per ogni fase.',
     whatYouGet: ['Roadmap 12 mesi dettagliata', 'OKR per trimestre', 'Milestones settimanali', 'Dipendenze e blockers', 'Team e risorse', 'KPI per fase', 'Template Notion/Asana']
@@ -377,7 +377,7 @@ export const ARSENAL_ITEMS: ArsenalItem[] = [
     description: 'Contratti soci, patti parasociali, NDA e templates',
     icon: '⚖️',
     category: 'legal',
-    estimatedTime: 'istantaneo',
+    estimatedTime: '~15 sec',
     outputType: 'text',
     howItWorks: 'Genera tutti i documenti legali essenziali per una startup: patto tra soci, accordo di riservatezza, vesting agreement, IP assignment e checklist legale. Basato sulla struttura e settore della tua startup.',
     whatYouGet: ['Patto Parasociale completo', 'NDA bilaterale', 'Vesting Agreement 4 anni', 'IP Assignment', 'Founder Agreement', 'GDPR checklist', 'Clausole personalizzate']
@@ -388,7 +388,7 @@ export const ARSENAL_ITEMS: ArsenalItem[] = [
     description: 'Simulatore diluzione multi-round',
     icon: '🥧',
     category: 'fundraising',
-    estimatedTime: 'istantaneo',
+    estimatedTime: '~15 sec',
     outputType: 'spreadsheet',
     howItWorks: 'Simula la diluzione attraverso diversi round di funding (pre-seed, seed, Series A) mostrando l\'impatto sulla ownership dei founder e suggerendo termini founder-friendly.',
     whatYouGet: ['Cap table iniziale', '4 scenari di round', 'Dilution waterfall', 'ESOP recommendations', 'Formula Google Sheets', 'Term sheet tips']
