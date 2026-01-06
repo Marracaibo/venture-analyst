@@ -1,0 +1,13 @@
+[build]
+  command = "npm run build"
+  publish = ".next"
+
+[build.environment]
+  NODE_VERSION = "18"
+
+[functions]
+  # Increase timeout for API calls to Claude (max 26 seconds on free tier)
+  external_node_modules = ["@anthropic-ai/sdk"]
+
+[[plugins]]
+  package = "@netlify/plugin-nextjs"
