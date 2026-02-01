@@ -1,7 +1,10 @@
 {
   "functions": {
-    "app/api/arsenal/*.ts": {
+    "app/api/arsenal/premium/*.ts": {
       "maxDuration": 300
+    },
+    "app/api/arsenal/*.ts": {
+      "maxDuration": 120
     },
     "app/api/**/*.ts": {
       "maxDuration": 60

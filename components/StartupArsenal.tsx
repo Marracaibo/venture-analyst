@@ -6,11 +6,13 @@ import {
   Swords, Loader2, X, Download, Copy, Check, ExternalLink,
   Globe, Mail, Linkedin, Target, DollarSign, BarChart3,
   MessageSquare, FlaskConical, Clipboard, Radar, PieChart,
-  Mic, FileText, ChevronDown, ChevronUp, Sparkles, Info
+  Mic, FileText, ChevronDown, ChevronUp, Sparkles, Info,
+  Crown, Zap
 } from 'lucide-react';
 import { useStore } from '@/lib/store';
 import { ARSENAL_CATEGORIES, ARSENAL_ITEMS, ArsenalItemId, ArsenalItem } from '@/lib/arsenal-types';
 import { generateArsenalPDF, generatePreviewHTML } from '@/lib/arsenal-pdf-export';
+import { hasPremiumGeneration } from '@/lib/arsenal-prompts-premium';
 
 interface GeneratedContent {
   itemId: ArsenalItemId;
@@ -27,12 +29,16 @@ interface PartInfo {
 export function StartupArsenal() {
   const { currentAnalysis, currentIdea } = useStore();
   const [generating, setGenerating] = useState<ArsenalItemId | null>(null);
+  const [generatingPremium, setGeneratingPremium] = useState<ArsenalItemId | null>(null);
   const [generatedItems, setGeneratedItems] = useState<Map<ArsenalItemId, GeneratedContent>>(new Map());
+  const [premiumItems, setPremiumItems] = useState<Map<ArsenalItemId, GeneratedContent>>(new Map());
   const [activePreview, setActivePreview] = useState<ArsenalItemId | null>(null);
+  const [isPremiumPreview, setIsPremiumPreview] = useState(false);
   const [expandedCategory, setExpandedCategory] = useState<string | null>('attack');
   const [copied, setCopied] = useState(false);
   const [showInfo, setShowInfo] = useState<ArsenalItemId | null>(null);
   const [partProgress, setPartProgress] = useState<PartInfo | null>(null);
+  const [premiumProgress, setPremiumProgress] = useState<{ current: number; total: number; title: string } | null>(null);
 
   if (!currentAnalysis || !currentIdea) return null;
 
@@ -101,11 +107,105 @@ export function StartupArsenal() {
       }));
       
       setActivePreview(itemId);
+      setIsPremiumPreview(false);
       console.log('[ARSENAL] Generation complete for:', itemId);
     } catch (error) {
       console.error('[ARSENAL] Error generating:', error);
     } finally {
       setGenerating(null);
+    }
+  };
+
+  // Premium document generation - multi-section with Claude Sonnet
+  const handleGeneratePremium = async (itemId: ArsenalItemId) => {
+    if (generatingPremium || generating) return;
+    
+    setGeneratingPremium(itemId);
+    setPremiumProgress(null);
+    
+    try {
+      console.log('[ARSENAL PREMIUM] Starting generation for:', itemId);
+      
+      const response = await fetch('/api/arsenal/premium', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          itemId,
+          idea: currentIdea,
+          analysis: currentAnalysis
+        })
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('[ARSENAL PREMIUM] Error response:', errorText);
+        throw new Error('Premium generation failed');
+      }
+
+      const reader = response.body?.getReader();
+      if (!reader) throw new Error('No response body');
+
+      const decoder = new TextDecoder();
+      let fullContent = '';
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        const chunk = decoder.decode(value, { stream: true });
+        const lines = chunk.split('\n').filter(line => line.trim());
+
+        for (const line of lines) {
+          try {
+            const data = JSON.parse(line);
+            
+            if (data.type === 'metadata') {
+              setPremiumProgress({ current: 0, total: data.totalSections, title: 'Inizializzazione...' });
+            } else if (data.type === 'section_start') {
+              setPremiumProgress({ 
+                current: data.sectionIndex + 1, 
+                total: data.totalSections, 
+                title: data.sectionTitle 
+              });
+            } else if (data.type === 'delta' && data.text) {
+              // Simply append the delta - no complex accumulation logic
+              fullContent += data.text;
+              
+              // Update preview in real-time
+              setPremiumItems(prev => new Map(prev).set(itemId, {
+                itemId,
+                content: fullContent,
+              }));
+            } else if (data.type === 'section_complete') {
+              // Add section separator
+              fullContent += '\n\n---\n\n';
+            } else if (data.type === 'done') {
+              console.log('[ARSENAL PREMIUM] Generation complete');
+            } else if (data.type === 'error') {
+              throw new Error(data.message);
+            }
+          } catch (e) {
+            // Skip invalid JSON
+            if (e instanceof SyntaxError) continue;
+            throw e;
+          }
+        }
+      }
+      
+      // Final update
+      setPremiumItems(prev => new Map(prev).set(itemId, {
+        itemId,
+        content: fullContent,
+      }));
+      
+      setActivePreview(itemId);
+      setIsPremiumPreview(true);
+      console.log('[ARSENAL PREMIUM] Generation complete for:', itemId);
+    } catch (error) {
+      console.error('[ARSENAL PREMIUM] Error generating:', error);
+    } finally {
+      setGeneratingPremium(null);
+      setPremiumProgress(null);
     }
   };
 
@@ -169,19 +269,23 @@ export function StartupArsenal() {
 
   const renderItemCard = (item: ArsenalItem) => {
     const isGenerated = generatedItems.has(item.id);
+    const isPremiumGenerated = premiumItems.has(item.id);
     const isGenerating = generating === item.id;
+    const isGeneratingPremiumItem = generatingPremium === item.id;
     const isInfoOpen = showInfo === item.id;
+    const hasPremium = hasPremiumGeneration(item.id);
 
     return (
       <div key={item.id} className="relative">
         <motion.div
           whileHover={{ scale: 1.02 }}
-          className={`relative p-4 rounded-xl border transition-all cursor-pointer ${
-            isGenerated 
-              ? 'border-accent-green bg-accent-green/5' 
-              : 'border-border-subtle bg-background hover:border-accent-purple/50'
+          className={`relative p-4 rounded-xl border transition-all ${
+            isPremiumGenerated
+              ? 'border-yellow-500 bg-yellow-500/5'
+              : isGenerated 
+                ? 'border-accent-green bg-accent-green/5' 
+                : 'border-border-subtle bg-background hover:border-accent-purple/50'
           }`}
-          onClick={() => isGenerated ? setActivePreview(item.id) : handleGenerate(item.id)}
         >
           {/* Info Button */}
           <button
@@ -194,18 +298,32 @@ export function StartupArsenal() {
             <Info className="w-3.5 h-3.5 text-text-muted hover:text-accent-purple" />
           </button>
 
+          {/* Premium Badge */}
+          {hasPremium && (
+            <div className="absolute -top-2 right-8 px-2 py-0.5 rounded-full bg-gradient-to-r from-yellow-500 to-orange-500 flex items-center gap-1">
+              <Crown className="w-3 h-3 text-white" />
+              <span className="text-[10px] font-bold text-white">PRO</span>
+            </div>
+          )}
+
           {/* Generated Badge */}
-          {isGenerated && (
-            <div className="absolute -top-2 -left-2 w-6 h-6 rounded-full bg-accent-green flex items-center justify-center">
+          {(isGenerated || isPremiumGenerated) && (
+            <div className={`absolute -top-2 -left-2 w-6 h-6 rounded-full flex items-center justify-center ${
+              isPremiumGenerated ? 'bg-yellow-500' : 'bg-accent-green'
+            }`}>
               <Check className="w-3 h-3 text-white" />
             </div>
           )}
 
           <div className="flex items-start gap-3">
             <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${
-              isGenerated ? 'bg-accent-green/20 text-accent-green' : 'bg-surface-elevated text-text-muted'
+              isPremiumGenerated 
+                ? 'bg-yellow-500/20 text-yellow-500'
+                : isGenerated 
+                  ? 'bg-accent-green/20 text-accent-green' 
+                  : 'bg-surface-elevated text-text-muted'
             }`}>
-              {isGenerating ? (
+              {isGenerating || isGeneratingPremiumItem ? (
                 <Loader2 className="w-5 h-5 animate-spin text-accent-purple" />
               ) : (
                 <span className="text-xl">{item.icon}</span>
@@ -215,17 +333,101 @@ export function StartupArsenal() {
             <div className="flex-1 min-w-0 pr-6">
               <h4 className="font-semibold text-text-primary text-sm">{item.name}</h4>
               <p className="text-xs text-text-muted mt-0.5 line-clamp-2">{item.description}</p>
-              <div className="flex items-center gap-2 mt-2">
-                <span className="text-xs text-accent-purple">{item.estimatedTime}</span>
-                {isGenerated && (
-                  <span className="text-xs text-accent-green">✓ Pronto</span>
-                )}
-              </div>
+              
+              {/* Progress indicator for premium */}
+              {isGeneratingPremiumItem && premiumProgress && (
+                <div className="mt-2">
+                  <div className="flex items-center gap-2 text-xs text-yellow-500">
+                    <Loader2 className="w-3 h-3 animate-spin" />
+                    <span>Sezione {premiumProgress.current}/{premiumProgress.total}: {premiumProgress.title}</span>
+                  </div>
+                  <div className="mt-1 h-1 bg-background rounded-full overflow-hidden">
+                    <div 
+                      className="h-full bg-gradient-to-r from-yellow-500 to-orange-500 transition-all duration-300"
+                      style={{ width: `${(premiumProgress.current / premiumProgress.total) * 100}%` }}
+                    />
+                  </div>
+                </div>
+              )}
+              
+              {!isGeneratingPremiumItem && (
+                <div className="flex items-center gap-2 mt-2">
+                  <span className="text-xs text-accent-purple">{item.estimatedTime}</span>
+                  {isPremiumGenerated && (
+                    <span className="text-xs text-yellow-500 flex items-center gap-1">
+                      <Crown className="w-3 h-3" /> Premium
+                    </span>
+                  )}
+                  {isGenerated && !isPremiumGenerated && (
+                    <span className="text-xs text-accent-green">✓ Pronto</span>
+                  )}
+                </div>
+              )}
             </div>
           </div>
-        </motion.div>
 
-        </div>
+          {/* Action Buttons */}
+          <div className="mt-3 flex gap-2">
+            {/* Quick Preview Button */}
+            <button
+              onClick={() => isGenerated ? (setActivePreview(item.id), setIsPremiumPreview(false)) : handleGenerate(item.id)}
+              disabled={isGenerating || isGeneratingPremiumItem}
+              className={`flex-1 py-2 px-3 rounded-lg text-xs font-medium transition-all flex items-center justify-center gap-1.5 ${
+                isGenerated 
+                  ? 'bg-accent-green/10 text-accent-green hover:bg-accent-green/20' 
+                  : 'bg-accent-purple/10 text-accent-purple hover:bg-accent-purple/20'
+              } disabled:opacity-50`}
+            >
+              {isGenerating ? (
+                <>
+                  <Loader2 className="w-3 h-3 animate-spin" />
+                  Generando...
+                </>
+              ) : isGenerated ? (
+                <>
+                  <ExternalLink className="w-3 h-3" />
+                  Vedi Preview
+                </>
+              ) : (
+                <>
+                  <Zap className="w-3 h-3" />
+                  Preview Veloce
+                </>
+              )}
+            </button>
+
+            {/* Premium Button - only for items with premium support */}
+            {hasPremium && (
+              <button
+                onClick={() => isPremiumGenerated ? (setActivePreview(item.id), setIsPremiumPreview(true)) : handleGeneratePremium(item.id)}
+                disabled={isGenerating || isGeneratingPremiumItem}
+                className={`flex-1 py-2 px-3 rounded-lg text-xs font-medium transition-all flex items-center justify-center gap-1.5 ${
+                  isPremiumGenerated
+                    ? 'bg-yellow-500/10 text-yellow-500 hover:bg-yellow-500/20'
+                    : 'bg-gradient-to-r from-yellow-500/10 to-orange-500/10 text-yellow-600 hover:from-yellow-500/20 hover:to-orange-500/20'
+                } disabled:opacity-50`}
+              >
+                {isGeneratingPremiumItem ? (
+                  <>
+                    <Loader2 className="w-3 h-3 animate-spin" />
+                    {premiumProgress ? `${premiumProgress.current}/${premiumProgress.total}` : '...'}
+                  </>
+                ) : isPremiumGenerated ? (
+                  <>
+                    <Crown className="w-3 h-3" />
+                    Vedi Premium
+                  </>
+                ) : (
+                  <>
+                    <Crown className="w-3 h-3" />
+                    Doc. Completo
+                  </>
+                )}
+              </button>
+            )}
+          </div>
+        </motion.div>
+      </div>
     );
   };
 
@@ -297,12 +499,28 @@ export function StartupArsenal() {
       {/* Quick Stats */}
       <div className="p-4 border-t border-border-subtle bg-background/50">
         <div className="flex items-center justify-between text-sm">
-          <span className="text-text-muted">
-            {generatedItems.size} / {ARSENAL_ITEMS.length} generati
-          </span>
-          {generatedItems.size > 0 && (
+          <div className="flex items-center gap-4">
+            <span className="text-text-muted">
+              {generatedItems.size} preview
+            </span>
+            {premiumItems.size > 0 && (
+              <span className="text-yellow-500 flex items-center gap-1">
+                <Crown className="w-3 h-3" />
+                {premiumItems.size} premium
+              </span>
+            )}
+          </div>
+          {(generatedItems.size > 0 || premiumItems.size > 0) && (
             <button 
-              onClick={() => setActivePreview(Array.from(generatedItems.keys())[0])}
+              onClick={() => {
+                if (premiumItems.size > 0) {
+                  setActivePreview(Array.from(premiumItems.keys())[0]);
+                  setIsPremiumPreview(true);
+                } else {
+                  setActivePreview(Array.from(generatedItems.keys())[0]);
+                  setIsPremiumPreview(false);
+                }
+              }}
               className="text-accent-purple hover:underline flex items-center gap-1"
             >
               Vedi generati
@@ -312,9 +530,9 @@ export function StartupArsenal() {
         </div>
       </div>
 
-      {/* Preview Modal */}
+      {/* Preview Modal - Works for both regular and premium */}
       <AnimatePresence>
-        {activePreview && generatedItems.has(activePreview) && (
+        {activePreview && (generatedItems.has(activePreview) || premiumItems.has(activePreview)) && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -327,17 +545,26 @@ export function StartupArsenal() {
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.9, opacity: 0 }}
               onClick={(e) => e.stopPropagation()}
-              className="bg-surface-elevated rounded-2xl max-w-5xl w-full max-h-[85vh] overflow-hidden flex flex-col"
+              className={`bg-surface-elevated rounded-2xl max-w-5xl w-full max-h-[85vh] overflow-hidden flex flex-col ${
+                isPremiumPreview ? 'border-2 border-yellow-500/50' : ''
+              }`}
             >
               {/* Modal Header */}
-              <div className="flex items-center justify-between p-4 border-b border-border-subtle">
+              <div className={`flex items-center justify-between p-4 border-b ${
+                isPremiumPreview ? 'border-yellow-500/30 bg-gradient-to-r from-yellow-500/10 to-orange-500/10' : 'border-border-subtle'
+              }`}>
                 <div className="flex items-center gap-3">
                   <span className="text-2xl">
                     {ARSENAL_ITEMS.find(i => i.id === activePreview)?.icon}
                   </span>
                   <div>
-                    <h4 className="font-bold text-text-primary">
+                    <h4 className="font-bold text-text-primary flex items-center gap-2">
                       {ARSENAL_ITEMS.find(i => i.id === activePreview)?.name}
+                      {isPremiumPreview && (
+                        <span className="px-2 py-0.5 rounded-full bg-gradient-to-r from-yellow-500 to-orange-500 text-white text-xs font-bold flex items-center gap-1">
+                          <Crown className="w-3 h-3" /> PREMIUM
+                        </span>
+                      )}
                     </h4>
                     <p className="text-xs text-text-muted">
                       Generato per: {currentAnalysis.ideaTitle}
@@ -348,7 +575,11 @@ export function StartupArsenal() {
                   <motion.button 
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
-                    onClick={() => handleCopy(generatedItems.get(activePreview)?.content || '')}
+                    onClick={() => handleCopy(
+                      isPremiumPreview 
+                        ? premiumItems.get(activePreview)?.content || ''
+                        : generatedItems.get(activePreview)?.content || ''
+                    )}
                     className="flex items-center gap-2 px-3 py-1.5 bg-background hover:bg-border-subtle rounded-lg text-sm transition-colors"
                   >
                     {copied ? <Check className="w-4 h-4 text-accent-green" /> : <Copy className="w-4 h-4" />}
@@ -358,8 +589,10 @@ export function StartupArsenal() {
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
                     onClick={() => handleDownloadMD(
-                      generatedItems.get(activePreview)?.content || '',
-                      `${activePreview}-${currentAnalysis.ideaTitle.toLowerCase().replace(/\s+/g, '-')}.md`
+                      isPremiumPreview 
+                        ? premiumItems.get(activePreview)?.content || ''
+                        : generatedItems.get(activePreview)?.content || '',
+                      `${activePreview}${isPremiumPreview ? '-premium' : ''}-${currentAnalysis.ideaTitle.toLowerCase().replace(/\s+/g, '-')}.md`
                     )}
                     className="flex items-center gap-2 px-3 py-1.5 bg-background hover:bg-border-subtle rounded-lg text-sm transition-colors"
                   >
@@ -369,8 +602,17 @@ export function StartupArsenal() {
                   <motion.button 
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
-                    onClick={() => handleDownloadPDF(activePreview, generatedItems.get(activePreview)?.content || '')}
-                    className="flex items-center gap-2 px-3 py-1.5 bg-gradient-to-r from-accent-purple to-accent-cyan text-white rounded-lg text-sm transition-colors font-medium"
+                    onClick={() => handleDownloadPDF(
+                      activePreview, 
+                      isPremiumPreview 
+                        ? premiumItems.get(activePreview)?.content || ''
+                        : generatedItems.get(activePreview)?.content || ''
+                    )}
+                    className={`flex items-center gap-2 px-3 py-1.5 text-white rounded-lg text-sm transition-colors font-medium ${
+                      isPremiumPreview 
+                        ? 'bg-gradient-to-r from-yellow-500 to-orange-500'
+                        : 'bg-gradient-to-r from-accent-purple to-accent-cyan'
+                    }`}
                   >
                     <Download className="w-4 h-4" />
                     PDF
@@ -389,7 +631,11 @@ export function StartupArsenal() {
                 <div 
                   className="max-w-none text-text-secondary leading-relaxed"
                   dangerouslySetInnerHTML={{ 
-                    __html: generatePreviewHTML(generatedItems.get(activePreview)?.content || '') 
+                    __html: generatePreviewHTML(
+                      isPremiumPreview 
+                        ? premiumItems.get(activePreview)?.content || ''
+                        : generatedItems.get(activePreview)?.content || ''
+                    ) 
                   }}
                 />
               </div>
@@ -398,12 +644,13 @@ export function StartupArsenal() {
               <div className="p-4 border-t border-border-subtle bg-background/50">
                 <div className="flex items-center justify-between">
                   <div className="flex gap-2">
+                    {/* Regular items */}
                     {Array.from(generatedItems.keys()).map(itemId => (
                       <button
-                        key={itemId}
-                        onClick={() => setActivePreview(itemId)}
+                        key={`regular-${itemId}`}
+                        onClick={() => { setActivePreview(itemId); setIsPremiumPreview(false); }}
                         className={`px-3 py-1.5 rounded-lg text-sm transition-colors ${
-                          activePreview === itemId 
+                          activePreview === itemId && !isPremiumPreview
                             ? 'bg-accent-purple text-white' 
                             : 'bg-background hover:bg-border-subtle text-text-muted'
                         }`}
@@ -411,9 +658,28 @@ export function StartupArsenal() {
                         {ARSENAL_ITEMS.find(i => i.id === itemId)?.icon}
                       </button>
                     ))}
+                    {/* Premium items separator */}
+                    {premiumItems.size > 0 && generatedItems.size > 0 && (
+                      <div className="w-px h-6 bg-border-subtle mx-1" />
+                    )}
+                    {/* Premium items */}
+                    {Array.from(premiumItems.keys()).map(itemId => (
+                      <button
+                        key={`premium-${itemId}`}
+                        onClick={() => { setActivePreview(itemId); setIsPremiumPreview(true); }}
+                        className={`px-3 py-1.5 rounded-lg text-sm transition-colors flex items-center gap-1 ${
+                          activePreview === itemId && isPremiumPreview
+                            ? 'bg-gradient-to-r from-yellow-500 to-orange-500 text-white' 
+                            : 'bg-yellow-500/10 hover:bg-yellow-500/20 text-yellow-500'
+                        }`}
+                      >
+                        <Crown className="w-3 h-3" />
+                        {ARSENAL_ITEMS.find(i => i.id === itemId)?.icon}
+                      </button>
+                    ))}
                   </div>
                   <span className="text-xs text-text-muted">
-                    Clicca sulle icone per navigare tra i generati
+                    {isPremiumPreview ? '👑 Documento Premium' : 'Preview veloce'}
                   </span>
                 </div>
               </div>

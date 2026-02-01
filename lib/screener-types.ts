@@ -26,7 +26,11 @@ export type Competizione = 'oceano-blu' | 'affollato' | 'saturo';
 
 export type Coachability = 'alta' | 'media' | 'bassa';
 
-export type Verdetto = 'CORE' | 'SATELLITE' | 'REJECT';
+// Nuovo sistema binario: GO o PARK
+export type Verdetto = 'GO' | 'PARK';
+
+// Legacy compatibility
+export type LegacyVerdetto = 'CORE' | 'SATELLITE' | 'REJECT';
 
 // ==========================================
 // 5 FILTRI CHIAVE DI VALUTAZIONE
@@ -353,8 +357,14 @@ export const COACHABILITY_LABELS: Record<Coachability, string> = {
   'bassa': 'Bassa - testa dura'
 };
 
-// Colori verdetto
+// Colori verdetto - sistema binario GO/PARK
 export const VERDETTO_COLORS: Record<Verdetto, { bg: string; text: string; border: string }> = {
+  'GO': { bg: 'bg-emerald-500/20', text: 'text-emerald-400', border: 'border-emerald-500' },
+  'PARK': { bg: 'bg-amber-500/20', text: 'text-amber-400', border: 'border-amber-500' }
+};
+
+// Legacy colors for compatibility
+export const LEGACY_VERDETTO_COLORS: Record<LegacyVerdetto, { bg: string; text: string; border: string }> = {
   'CORE': { bg: 'bg-emerald-500/20', text: 'text-emerald-400', border: 'border-emerald-500' },
   'SATELLITE': { bg: 'bg-amber-500/20', text: 'text-amber-400', border: 'border-amber-500' },
   'REJECT': { bg: 'bg-red-500/20', text: 'text-red-400', border: 'border-red-500' }

@@ -1,7 +1,10 @@
 ﻿'use client';
 import { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { CheckCircle2, XCircle, AlertTriangle, Sparkles, ArrowRight, ArrowLeft, ChevronDown, ChevronUp, Loader2, Home, Save, FolderOpen, Brain, Search, X, Building, Users, RefreshCw, Lightbulb, Wrench, Rocket, Banknote, HelpCircle } from 'lucide-react';
+import { CheckCircle2, XCircle, AlertTriangle, Sparkles, ArrowRight, ArrowLeft, ChevronDown, ChevronUp, Loader2, Home, Save, FolderOpen, Brain, Search, X, Building, Users, RefreshCw, Lightbulb, Wrench, Rocket, Banknote, HelpCircle, FileText, Download } from 'lucide-react';
+import { generateInvestmentProposalPDF } from '@/lib/screener-proposal-pdf';
+import { generateFullProposalPDF } from '@/lib/screener-proposal-pdf-full';
+import { generateProposalWord } from '@/lib/screener-proposal-word';
 import Link from 'next/link';
 import { StartupInput, ScreenerResult, Settore, FaseAttuale, CapTable, Coachability, BusinessModel, SETTORI_CONFIG } from '@/lib/screener-types';
 import { saveToPortfolio } from '@/lib/portfolio-store';
@@ -75,7 +78,44 @@ export default function ScreenerPage() {
   const [err, setErr] = useState<string | null>(null);
   const [sv, setSv] = useState(false);
   const [srch, setSrch] = useState('');
+  const [genProp, setGenProp] = useState(false);
+  const [genProgress, setGenProgress] = useState('');
   const tot = 11;
+
+  // Genera proposta completa con AI (Word)
+  const generateFullProposal = async (format: 'word' | 'pdf' = 'word') => {
+    if (!res) return;
+    setGenProp(true);
+    setGenProgress('Generazione AI in corso... (2-3 minuti)');
+    
+    try {
+      const response = await fetch('/api/screener/proposal', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ input: inp, result: res })
+      });
+      
+      const data = await response.json();
+      
+      if (data.success && data.sections) {
+        setGenProgress(`Creazione ${format.toUpperCase()}...`);
+        if (format === 'word') {
+          await generateProposalWord(inp, res, data.sections);
+        } else {
+          await generateFullProposalPDF(inp, res, data.sections);
+        }
+        setGenProgress('');
+      } else {
+        setErr('Errore nella generazione della proposta');
+      }
+    } catch (error) {
+      console.error('Error generating proposal:', error);
+      setErr('Errore nella generazione');
+    } finally {
+      setGenProp(false);
+      setGenProgress('');
+    }
+  };
 
   const fSett = useMemo(() => {
     if (!srch.trim()) return SETTORI_CONFIG;
@@ -133,10 +173,10 @@ export default function ScreenerPage() {
           {res ? (
             <motion.div key="res" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-5">
               <div className="text-center space-y-3">
-                <div className={'w-20 h-20 mx-auto rounded-2xl flex items-center justify-center ' + (res.verdetto === 'CORE' ? 'bg-emerald-500/20 border-2 border-emerald-500' : res.verdetto === 'SATELLITE' ? 'bg-amber-500/20 border-2 border-amber-500' : 'bg-red-500/20 border-2 border-red-500')}>
-                  {res.verdetto === 'CORE' ? <CheckCircle2 className="w-10 h-10 text-emerald-400" /> : res.verdetto === 'SATELLITE' ? <AlertTriangle className="w-10 h-10 text-amber-400" /> : <XCircle className="w-10 h-10 text-red-400" />}
+                <div className={'w-20 h-20 mx-auto rounded-2xl flex items-center justify-center ' + (res.verdetto === 'GO' ? 'bg-emerald-500/20 border-2 border-emerald-500' : 'bg-amber-500/20 border-2 border-amber-500')}>
+                  {res.verdetto === 'GO' ? <CheckCircle2 className="w-10 h-10 text-emerald-400" /> : <AlertTriangle className="w-10 h-10 text-amber-400" />}
                 </div>
-                <h2 className={'text-2xl font-bold ' + (res.verdetto === 'CORE' ? 'text-emerald-400' : res.verdetto === 'SATELLITE' ? 'text-amber-400' : 'text-red-400')}>{res.verdettoLabel}</h2>
+                <h2 className={'text-2xl font-bold ' + (res.verdetto === 'GO' ? 'text-emerald-400' : 'text-amber-400')}>{res.verdettoLabel}</h2>
                 <p className="text-white font-medium">{inp.nome}</p>
                 <p className="text-xs text-slate-400">{BM_CFG[inp.businessModel].l} - {selSett?.label}</p>
               </div>
@@ -162,20 +202,101 @@ export default function ScreenerPage() {
                   </div>
                 </div>
               )}
-              <div className="bg-slate-800/50 rounded-xl p-4 border border-slate-700"><p className="text-slate-300 text-sm">{res.reasoning}</p></div>
+              {/* Box Reasoning con spiegazione verdetto */}
+              <div className={`rounded-xl p-4 border ${res.verdetto === 'GO' ? 'bg-emerald-500/10 border-emerald-500/30' : 'bg-amber-500/10 border-amber-500/30'}`}>
+                <div className="flex items-start gap-3">
+                  <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${res.verdetto === 'GO' ? 'bg-emerald-500/20' : 'bg-amber-500/20'}`}>
+                    {res.verdetto === 'GO' ? <CheckCircle2 className="w-5 h-5 text-emerald-400" /> : <AlertTriangle className="w-5 h-5 text-amber-400" />}
+                  </div>
+                  <div>
+                    <p className={`font-semibold text-sm mb-1 ${res.verdetto === 'GO' ? 'text-emerald-400' : 'text-amber-400'}`}>
+                      {res.verdetto === 'GO' ? '🚀 Verdetto: GO - Pronti a partire!' : '⏸️ Verdetto: PARK - Non ancora pronti'}
+                    </p>
+                    <p className="text-slate-300 text-sm">{res.reasoning}</p>
+                    {res.verdetto === 'PARK' && (
+                      <p className="text-amber-300/80 text-xs mt-2 italic">
+                        💡 Per passare a GO: migliorare traction e validazione di mercato. Ricontattaci quando avrai più dati.
+                      </p>
+                    )}
+                  </div>
+                </div>
+              </div>
               {res.operationalRoles && res.operationalRoles.length > 0 && <div className="bg-violet-500/10 rounded-xl p-4 border border-violet-500/30"><p className="text-violet-400 text-sm mb-2">Ruoli Operativi</p><div className="flex gap-2">{res.operationalRoles.map(r => <span key={r} className="px-3 py-1 bg-violet-500/20 rounded text-violet-300 text-xs uppercase font-bold">{r}</span>)}</div></div>}
-              {res.killSwitches.length > 0 && <div className="bg-red-500/10 rounded-xl p-4 border border-red-500/30"><p className="text-red-400 text-sm mb-2">Bloccanti</p><ul>{res.killSwitches.map((k,i) => <li key={i} className="text-slate-300 text-xs">- {k}</li>)}</ul></div>}
+              {res.killSwitches.length > 0 && <div className="bg-red-500/10 rounded-xl p-4 border border-red-500/30"><p className="text-red-400 text-sm mb-2">⛔ Bloccanti (Kill Switches)</p><ul>{res.killSwitches.map((k,i) => <li key={i} className="text-slate-300 text-xs">- {k}</li>)}</ul></div>}
               <div className="grid grid-cols-2 gap-3"><div className="bg-emerald-500/10 rounded-xl p-3 border border-emerald-500/30"><p className="text-emerald-400 text-xs mb-2">Punti di Forza</p><ul>{res.strengths.slice(0,4).map((x,i) => <li key={i} className="text-slate-300 text-xs mb-1">+ {x}</li>)}</ul></div><div className="bg-amber-500/10 rounded-xl p-3 border border-amber-500/30"><p className="text-amber-400 text-xs mb-2">Da Migliorare</p><ul>{res.weaknesses.slice(0,4).map((x,i) => <li key={i} className="text-slate-300 text-xs mb-1">- {x}</li>)}</ul></div></div>
-              {res.packages.length > 0 && <div className="space-y-2"><p className="text-white font-medium text-sm">Pacchetti Proposti</p>{res.packages.map((p,i) => <div key={i} className="bg-slate-800/50 rounded-xl border border-slate-700"><button onClick={() => setExp(exp === i ? null : i)} className="w-full p-3 flex justify-between text-left"><div><p className="font-medium text-white text-sm">{p.nome}</p><p className="text-xs text-violet-400">{p.prezzo}</p></div>{exp === i ? <ChevronUp className="w-4 h-4 text-slate-400" /> : <ChevronDown className="w-4 h-4 text-slate-400" />}</button>{exp === i && <div className="px-3 pb-3 space-y-2">{p.items.map((it,j) => <div key={j} className="bg-slate-900/50 rounded p-2"><p className="text-white text-xs font-medium">{it.titolo}</p><p className="text-xs text-slate-400">{it.descrizione}</p></div>)}</div>}</div>)}</div>}
+              
+              {/* Pacchetti Proposti */}
+              <div className="space-y-2">
+                <p className="text-white font-medium text-sm">
+                  {res.verdetto === 'GO' ? '🎁 Pacchetto Co-Founding (25-35% equity)' : '📋 Pacchetto Proposto (se condizioni migliorano)'}
+                </p>
+                {res.packages.length > 0 ? (
+                  res.packages.map((p,i) => (
+                    <div key={i} className="bg-slate-800/50 rounded-xl border border-slate-700">
+                      <button onClick={() => setExp(exp === i ? null : i)} className="w-full p-3 flex justify-between text-left">
+                        <div>
+                          <p className="font-medium text-white text-sm">{p.nome}</p>
+                          <p className="text-xs text-violet-400">{p.prezzo}</p>
+                        </div>
+                        {exp === i ? <ChevronUp className="w-4 h-4 text-slate-400" /> : <ChevronDown className="w-4 h-4 text-slate-400" />}
+                      </button>
+                      {exp === i && (
+                        <div className="px-3 pb-3 space-y-2">
+                          {p.items.map((it,j) => (
+                            <div key={j} className="bg-slate-900/50 rounded p-2">
+                              <p className="text-white text-xs font-medium">{it.titolo}</p>
+                              <p className="text-xs text-slate-400">{it.descrizione}</p>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  ))
+                ) : (
+                  <div className="bg-slate-800/50 rounded-xl p-4 border border-slate-700 border-dashed">
+                    <p className="text-slate-400 text-sm text-center">
+                      ⏳ Pacchetto in generazione... Se non appare, l'analisi AI potrebbe essere ancora in corso.
+                    </p>
+                  </div>
+                )}
+              </div>
               {res.nextSteps.length > 0 && <div className="bg-violet-500/10 rounded-xl p-4 border border-violet-500/30"><p className="text-violet-400 text-sm mb-2">Prossimi Passi</p><ol>{res.nextSteps.slice(0,4).map((x,i) => <li key={i} className="flex gap-2 mb-1"><span className="w-5 h-5 rounded-full bg-violet-500/30 text-violet-400 text-xs flex items-center justify-center">{i+1}</span><span className="text-slate-300 text-xs">{x}</span></li>)}</ol></div>}
-              <div className="flex gap-2"><button onClick={savePf} disabled={sv} className={'flex-1 py-3 rounded-xl font-medium text-sm flex items-center justify-center gap-2 ' + (sv ? 'bg-emerald-500/20 text-emerald-400' : 'bg-violet-600 text-white')}>{sv ? <><CheckCircle2 className="w-4 h-4" />Salvato</> : <><Save className="w-4 h-4" />Salva</>}</button><Link href="/portfolio" className="px-4 py-3 rounded-xl bg-slate-700 text-white flex items-center"><FolderOpen className="w-4 h-4" /></Link></div>
+              <div className="flex gap-2">
+                <button onClick={savePf} disabled={sv} className={'flex-1 py-3 rounded-xl font-medium text-sm flex items-center justify-center gap-2 ' + (sv ? 'bg-emerald-500/20 text-emerald-400' : 'bg-violet-600 text-white')}>{sv ? <><CheckCircle2 className="w-4 h-4" />Salvato</> : <><Save className="w-4 h-4" />Salva</>}</button>
+                <button onClick={() => generateInvestmentProposalPDF(inp, res)} className="px-4 py-3 rounded-xl bg-slate-700 text-white flex items-center gap-2 text-sm"><FileText className="w-4 h-4" />Quick PDF</button>
+                <Link href="/portfolio" className="px-4 py-3 rounded-xl bg-slate-700 text-white flex items-center"><FolderOpen className="w-4 h-4" /></Link>
+              </div>
+              
+              {/* Genera Proposta Completa AI - Word */}
+              <button 
+                onClick={() => generateFullProposal('word')} 
+                disabled={genProp}
+                className="w-full py-4 rounded-xl font-medium text-sm flex items-center justify-center gap-3 bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 text-white hover:from-blue-700 hover:via-indigo-700 hover:to-purple-700 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
+              >
+                {genProp ? (
+                  <>
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                    <span>{genProgress || 'Generazione AI in corso...'}</span>
+                  </>
+                ) : (
+                  <>
+                    <Download className="w-5 h-5" />
+                    <span>Genera Proposta Word AI (70+ pagine)</span>
+                    <Sparkles className="w-4 h-4" />
+                  </>
+                )}
+              </button>
               <button onClick={rst} className="w-full py-2 text-slate-500 hover:text-white text-xs">Nuova analisi</button>
             </motion.div>
           ) : (
             <motion.div key={s} initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="space-y-6">
               <div className="text-center"><h2 className="text-xl font-bold text-white mb-1">{titles[s]}</h2></div>
-              {s === 0 && <div className="max-w-sm mx-auto space-y-4">
+              {s === 0 && <div className="max-w-md mx-auto space-y-4">
                 <input type="text" value={inp.nome} onChange={e => setInp({...inp, nome: e.target.value})} placeholder="Nome startup" className="w-full px-4 py-3 bg-slate-800/50 border border-slate-700 rounded-xl text-white text-center focus:border-violet-500 focus:outline-none" autoFocus />
+                <div>
+                  <label className="text-xs text-slate-400 mb-1 block">Descrizione breve (1-2 frasi)</label>
+                  <textarea value={inp.descrizione || ''} onChange={e => setInp({...inp, descrizione: e.target.value})} placeholder="Es: Piattaforma AI che aiuta gli avvocati a trovare precedenti legali in 10 secondi invece di 3 ore" rows={2} className="w-full px-4 py-3 bg-slate-800/50 border border-slate-700 rounded-xl text-white text-sm focus:border-violet-500 focus:outline-none resize-none" />
+                </div>
                 <div className="pt-4 border-t border-slate-700/50">
                   <p className="text-xs text-slate-500 text-center mb-3">Demo per testing</p>
                   <div className="grid grid-cols-2 gap-2">

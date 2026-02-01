@@ -6,8 +6,10 @@ const client = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY,
 });
 
-// Use Haiku for speed (completes in <30 seconds)
+// Haiku per valutazione filtri (veloce)
 const FAST_MODEL = 'claude-3-5-haiku-20241022';
+// Opus per analisi finale approfondita
+const DEEP_MODEL = 'claude-sonnet-4-20250514';
 
 // PROMPT per valutazione oggettiva dei 5 filtri
 const FILTERS_EVALUATION_PROMPT = `Sei un Venture Analyst esperto. Valuta OGGETTIVAMENTE questa startup sui 5 filtri chiave.
@@ -68,14 +70,47 @@ Un filtro e' "passed" se score >= 3.`;
 
 const SCREENER_PROMPT = `Sei un Venture Builder Expert senior per Forge Studio. Il tuo compito è analizzare startup in profondità e creare PACCHETTI DI SUPPORTO ULTRA-PERSONALIZZATI e ACTIONABLE.
 
-## TEAM FORGE STUDIO
+## TEAM FORGE STUDIO - PROFILI DETTAGLIATI
 
-Il team che lavorerà con la startup:
-- **Riccardo (CEO)**: 20+ anni esperienza in Marketing & Sales. Competenze: GTM strategy, sales processes, brand positioning, customer acquisition
-- **Alessandro (CFO)**: Esperto commerciale con forte network di investitori. Competenze: fundraising, financial modeling, investor relations, deal structuring
-- **Amin (CTO)**: Competenze tecniche avanzate in AI/ML, coding, database, architettura software, DevOps
+### 👔 RICCARDO (CEO) - Sales & Marketing Leader
+**Background:** 20+ anni in Marketing & Sales, ex-direttore commerciale in aziende tech
+**Competenze core:**
+- GTM Strategy & Go-to-Market execution
+- Sales processes, pipeline management, closing
+- Brand positioning & messaging
+- Customer acquisition & retention
+- Partnership development & BD
+- Pricing strategy & value proposition
+**Stile di lavoro:** Hands-on, orientato ai risultati, ottimo networker
+**Disponibilità:** 2-3 giorni/settimana per startup GO
 
-Se un task richiede competenze NON presenti nel team, scrivi "ESTERNO" come responsabile.
+### 💰 ALESSANDRO (CFO) - Finance & Fundraising Expert  
+**Background:** Esperto commerciale con forte network di investitori (VC, angel, family office)
+**Competenze core:**
+- Fundraising strategy & execution
+- Financial modeling & projections (Excel avanzato)
+- Investor relations & pitch preparation
+- Deal structuring & term sheet negotiation
+- Valuation & cap table management
+- Due diligence preparation
+**Stile di lavoro:** Analitico, relazionale, focus su numeri e narrative
+**Disponibilità:** 2 giorni/settimana per startup GO
+
+### 🛠️ AMIN (CTO) - Tech & AI Architect
+**Background:** Competenze tecniche avanzate in AI/ML, full-stack development
+**Competenze core:**
+- AI/ML integration & prompt engineering
+- Full-stack development (React, Node, Python)
+- Database design & optimization
+- Cloud architecture (AWS, GCP, Vercel)
+- DevOps & CI/CD pipelines
+- API design & system integration
+- Mobile app development
+**Stile di lavoro:** Deep work, problem solver, automazione-first
+**Disponibilità:** 3 giorni/settimana per startup GO
+
+### ⚠️ REGOLA IMPORTANTE
+Se un task richiede competenze NON presenti nel team (es. design grafico, legal, HR, PR media), scrivi "ESTERNO" come responsabile e specifica che sarà coordinato dal team member più affine.
 
 ## FORGE STUDIO - SERVIZI DISPONIBILI
 
@@ -149,18 +184,36 @@ Se un task richiede competenze NON presenti nel team, scrivi "ESTERNO" come resp
   - Deliverable specifico
   - Timeline realistica
   - Chi lo fa (Riccardo/Alessandro/Amin/ESTERNO)
-- **PRICING BASATO SUL VERDETTO**:
-  - Se verdetto è CORE: Forge Studio diventa CO-FOUNDER → **60-80% equity** (costruiamo insieme la startup)
-  - Se verdetto è SATELLITE: Partnership operativa → **15-25% equity** (supporto intensivo ma non co-founding)
-  - Servizi singoli (add-on): **3-8% equity**
+- **PRICING BASATO SUL VERDETTO** (sistema binario GO/PARK):
+  - Se verdetto è GO: Forge Studio diventa CO-FOUNDER → **25-35% equity** (costruiamo insieme la startup, vesting 4 anni cliff 1)
+  - Se verdetto è PARK: Genera comunque pacchetti per mostrare cosa offriremmo SE le condizioni migliorassero → equity indicativa 20-30%
+  
+**IMPORTANTE**: Genera SEMPRE i pacchetti personalizzati, indipendentemente dal verdetto. Servono per mostrare al founder cosa offriamo.
 
-## REGOLE PROSSIMI PASSI
+## REGOLE PROSSIMI PASSI - ROADMAP 90 GIORNI ULTRA-DETTAGLIATA
 
-Per ogni step dei prossimi 90 giorni DEVI specificare:
-- **Chi**: Riccardo, Alessandro, Amin, o ESTERNO
-- **Cosa**: azione concreta e specifica
-- **Output**: deliverable atteso
-- **Tempo**: durata realistica
+Per ogni settimana dei prossimi 90 giorni DEVI:
+
+1. **ASSEGNARE OWNER SPECIFICO** basandoti sulle competenze:
+   - **Riccardo** → Sales calls, pricing, GTM, partnership, pitch, networking eventi
+   - **Alessandro** → Financial model, pitch deck numeri, investor intro, valuation, cap table
+   - **Amin** → Coding, MVP, landing page, automazioni, integrazioni API, database, deploy
+   - **ESTERNO** → Design grafico, legal, HR, PR media (specificare chi coordina)
+
+2. **TASK ULTRA-SPECIFICI** - NO generici tipo "validare mercato", SI specifici tipo:
+   - "Chiamare 15 avvocati da lista LinkedIn Sales Navigator, script X, obiettivo: 5 demo"
+   - "Creare financial model Excel con tab: P&L 3 anni, unit economics, scenario analysis"
+   - "Deploy landing page su Vercel con form Typeform, tracking GA4 + Hotjar"
+
+3. **OUTPUT MISURABILE** per ogni task:
+   - Numero specifico (es. "10 interviste", "5 clienti", "1 MVP")
+   - Documento specifico (es. "Excel financial model", "Pitch deck 12 slide")
+   - Milestone tecnica (es. "API funzionante", "Database PostgreSQL live")
+
+4. **TIMELINE REALISTICA** considerando:
+   - Riccardo: 2-3 giorni/settimana disponibili
+   - Alessandro: 2 giorni/settimana disponibili  
+   - Amin: 3 giorni/settimana disponibili
 
 Sii BRUTALMENTE ONESTO e SPECIFICO. Niente fuffa generica.
 Rispondi SOLO in italiano.
@@ -209,8 +262,8 @@ Rispondi SOLO in italiano.
           "owner": "Riccardo"
         }
       ],
-      "prezzo": "15-20% Equity",
-      "rationale": "Questo pacchetto è per una startup SATELLITE che ha un prodotto tech ma manca di validazione commerciale. Per una startup CORE il prezzo sarebbe 60-80% perché diventiamo co-founder."
+      "prezzo": "25-35% Equity",
+      "rationale": "Startup GO - diventiamo co-founder con 25-35% equity (vesting 4 anni, cliff 1 anno). Per PARK non generiamo pacchetti."
     }
   ],
   "next90Days": [
@@ -278,8 +331,8 @@ IMPORTANTE:
 - Genera ESATTAMENTE questo formato
 - Ogni item DEVE avere tutti i campi (titolo, descrizione lunga, steps array, deliverable, timeline, owner)
 - Il PREZZO deve riflettere il VERDETTO:
-  * CORE → 60-80% equity (co-founding, costruiamo insieme)
-  * SATELLITE → 15-25% equity (partnership operativa)
+  * GO → 25-35% equity (co-founding, costruiamo insieme, vesting 4 anni cliff 1)
+  * PARK → Nessun pacchetto, rifiuto gentile
 - NON abbreviare.`;
 
 export async function POST(request: NextRequest) {
@@ -363,41 +416,63 @@ ${input.descrizione || 'Non fornita'}
       }
     }
 
-    // STEP 2: Determina verdetto basato sui filtri AI
+    // STEP 2: Sistema a Punteggio Pesato per verdetto OGGETTIVO
+    // Pesi: Traction 30%, Business Model 25%, Differentiation 20%, Market 15%, Problem 10%
+    const filters = aiFiltersResult?.filters || {};
+    const scores = {
+      traction: filters.traction?.score || 1,
+      businessModel: filters.businessModel?.score || 1,
+      differentiation: filters.differentiation?.score || 1,
+      marketAnalysis: filters.marketAnalysis?.score || 1,
+      problemSolving: filters.problemSolving?.score || 1
+    };
+    
+    // Calcola punteggio pesato (max 500 punti)
+    const weightedScore = 
+      (scores.traction * 30) +           // max 150
+      (scores.businessModel * 25) +       // max 125
+      (scores.differentiation * 20) +     // max 100
+      (scores.marketAnalysis * 15) +      // max 75
+      (scores.problemSolving * 10);       // max 50
+    
     const passedCount = aiFiltersResult?.passedCount || 0;
     const isCoachable = input.coachability !== 'bassa';
     const isCapTableClean = input.capTable !== 'sporca';
     
-    let verdetto: 'CORE' | 'SATELLITE' | 'REJECT' = 'SATELLITE';
-    let verdettoLabel = 'Satellite Partnership';
+    let verdetto: 'GO' | 'PARK' = 'PARK';
+    let verdettoLabel = 'Park';
     let reasoning = '';
 
-    // Kill switches - fattori che bloccano CORE
+    // Kill switches ASSOLUTI - bloccano sempre GO
     const killSwitches: string[] = [];
-    if (!isCoachable) killSwitches.push('Coachability bassa - founder non ricettivo');
-    if (!isCapTableClean) killSwitches.push('Cap Table problematica');
-    if (passedCount < 3) killSwitches.push(`Solo ${passedCount}/5 filtri superati`);
+    if (!isCoachable) killSwitches.push('Coachability bassa - founder non ricettivo al feedback');
+    if (!isCapTableClean) killSwitches.push('Cap Table problematica - richiede pulizia prima di procedere');
+    if (scores.traction === 1 && input.fase === 'idea') killSwitches.push('Nessuna traction e fase idea - troppo early');
 
-    // LOGICA VERDETTO:
-    // REJECT: meno di 3 filtri passati O kill switches critici
-    // CORE: 4+ filtri, cap table pulita, coachable
-    // SATELLITE: tutto il resto
+    // LOGICA VERDETTO BINARIO GO/PARK:
+    // GO: Punteggio >= 350/500 + ZERO kill switches + coachable + cap table pulita
+    // PARK: tutto il resto
     
-    if (passedCount < 3 || (killSwitches.length >= 2)) {
-      verdetto = 'REJECT';
-      verdettoLabel = 'Non Idonea';
-      reasoning = `La startup non supera i criteri minimi. ${aiFiltersResult?.overallAssessment || ''}`;
-    } else if (passedCount >= 4 && isCoachable && isCapTableClean) {
-      // 4+ filtri + no kill switches = CORE
-      verdetto = 'CORE';
-      verdettoLabel = 'Core Acceleration';
-      reasoning = `Startup con forte potenziale (${passedCount}/5 filtri). ${aiFiltersResult?.overallAssessment || ''}`;
+    const GO_THRESHOLD = 350; // 70% del punteggio massimo
+    
+    if (killSwitches.length === 0 && weightedScore >= GO_THRESHOLD && isCoachable && isCapTableClean) {
+      verdetto = 'GO';
+      verdettoLabel = 'Go - Co-Founding Partnership';
+      reasoning = `Startup promettente con punteggio ${weightedScore}/500 (${Math.round(weightedScore/5)}%). ${passedCount}/5 filtri superati. ${aiFiltersResult?.overallAssessment || 'Pronti per sprint di validazione insieme.'}`;
     } else {
-      // 3 filtri O ha qualche kill switch
-      verdetto = 'SATELLITE';
-      verdettoLabel = 'Satellite Partnership';
-      reasoning = `${passedCount}/5 filtri superati. ${aiFiltersResult?.overallAssessment || 'Possiamo supportare con servizi mirati.'}`;
+      verdetto = 'PARK';
+      const reasons: string[] = [];
+      if (weightedScore < GO_THRESHOLD) reasons.push(`Punteggio ${weightedScore}/500 sotto soglia ${GO_THRESHOLD}`);
+      if (killSwitches.length > 0) reasons.push(`Kill switch attivi: ${killSwitches.length}`);
+      if (!isCoachable) reasons.push('Founder non coachable');
+      if (!isCapTableClean) reasons.push('Cap table da sistemare');
+      
+      verdettoLabel = 'Park - Non ora';
+      reasoning = `${reasons.join('. ')}. ${aiFiltersResult?.overallAssessment || 'Ricontattare quando le condizioni cambiano.'}`;
     }
+    
+    // Log per debug
+    console.log(`[SCREENER] ${input.nome}: Score ${weightedScore}/500, Verdict: ${verdetto}, KillSwitches: ${killSwitches.length}`);
 
     // Costruisci filtersScore per UI
     const filtersScore = aiFiltersResult?.filters ? {
@@ -467,8 +542,8 @@ ${baseResult.killSwitches.length > 0 ? `Kill Switches attivati: ${baseResult.kil
 `;
 
         const message = await client.messages.create({
-          model: FAST_MODEL,
-          max_tokens: 4000,
+          model: DEEP_MODEL,
+          max_tokens: 6000,
           messages: [
             {
               role: 'user',
@@ -522,8 +597,8 @@ ${baseResult.killSwitches.length > 0 ? `Kill Switches attivati: ${baseResult.kil
             baseResult.nextSteps = formattedSteps;
           }
           
-          // PACCHETTI PERSONALIZZATI DA AI - Sostituiscono quelli base se CORE o SATELLITE
-          if (baseResult.verdetto !== 'REJECT' && aiInsights.customPackages?.length > 0) {
+          // PACCHETTI PERSONALIZZATI DA AI - Genera sempre (anche per PARK mostriamo cosa offriremmo)
+          if (aiInsights.customPackages?.length > 0) {
             // Sostituisci completamente i pacchetti con quelli generati da AI
             baseResult.packages = aiInsights.customPackages.map((pkg: any) => ({
               nome: pkg.nome,
@@ -553,6 +628,47 @@ ${baseResult.killSwitches.length > 0 ? `Kill Switches attivati: ${baseResult.kil
         // Continua con il risultato base se AI fallisce
       }
     }
+
+    // FALLBACK: Se non ci sono pacchetti, genera un pacchetto base
+    if (baseResult.packages.length === 0) {
+      console.log('[SCREENER] No packages from AI, generating fallback package');
+      baseResult.packages = [{
+        nome: verdetto === 'GO' ? 'Co-Founding Partnership' : 'Advisory Package',
+        items: [
+          {
+            titolo: 'Validazione & Strategy',
+            descrizione: 'Workshop intensivo per validare il modello di business e definire la strategia go-to-market.',
+            steps: ['Analisi competitor', 'Customer interviews', 'Value proposition canvas', 'GTM roadmap'],
+            deliverable: 'Strategy deck + Action plan 90 giorni',
+            timeline: '2 settimane',
+            owner: 'Riccardo'
+          },
+          {
+            titolo: 'Financial Planning',
+            descrizione: 'Costruzione del modello finanziario e preparazione per fundraising.',
+            steps: ['Financial model 3 anni', 'Unit economics', 'Funding strategy', 'Pitch deck'],
+            deliverable: 'Financial model Excel + Pitch deck',
+            timeline: '2 settimane',
+            owner: 'Alessandro'
+          },
+          {
+            titolo: 'Tech & Product',
+            descrizione: 'Review tecnica e roadmap prodotto.',
+            steps: ['Tech audit', 'Architecture review', 'MVP scope', 'Development roadmap'],
+            deliverable: 'Tech roadmap + MVP specs',
+            timeline: '1 settimana',
+            owner: 'Amin'
+          }
+        ],
+        prezzo: verdetto === 'GO' ? '25-35% equity (co-founding)' : '15-20% equity (advisory)',
+        equityRange: verdetto === 'GO' ? '25-35%' : '15-20%',
+        rationale: verdetto === 'GO' ? 'Partnership di co-founding per costruire insieme' : 'Supporto advisory per raggiungere le milestone necessarie',
+        focus: 'Full Stack Support',
+        tier: verdetto === 'GO' ? 'CORE' : 'BOOST'
+      }];
+    }
+
+    console.log(`[SCREENER] Final result: ${baseResult.verdetto}, packages: ${baseResult.packages.length}`);
 
     return NextResponse.json({
       success: true,

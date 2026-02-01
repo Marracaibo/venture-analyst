@@ -12,25 +12,52 @@ import { ScoreCard } from './visualizations/ScoreCard';
 import { EmptyState } from './EmptyState';
 import { StartupArsenal } from './StartupArsenal';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Download, Loader2 } from 'lucide-react';
+import { Download, Loader2, FileText, Sparkles } from 'lucide-react';
 import { generateAnalysisPDF } from '@/lib/pdf-export';
+import { generateForgeProposalWord } from '@/lib/forge-proposal-word';
 
 export function WarRoom() {
   const { currentAnalysis, isAnalyzing, analysisProgress } = useStore();
   const [isExporting, setIsExporting] = useState(false);
+  const [isGeneratingWord, setIsGeneratingWord] = useState(false);
+  const [wordProgress, setWordProgress] = useState('');
 
   const handleExportPDF = async () => {
     if (!currentAnalysis) return;
     
     setIsExporting(true);
     try {
-      // Small delay for UX
       await new Promise(resolve => setTimeout(resolve, 500));
       generateAnalysisPDF(currentAnalysis);
     } catch (error) {
       console.error('Error exporting PDF:', error);
     } finally {
       setIsExporting(false);
+    }
+  };
+
+  const handleGenerateWordProposal = async () => {
+    const idea = useStore.getState().currentIdea;
+    if (!currentAnalysis || !idea) return;
+    
+    setIsGeneratingWord(true);
+    setWordProgress('Generazione AI in corso...');
+    try {
+      const response = await fetch('/api/forge/proposal', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ idea, analysis: currentAnalysis })
+      });
+      const data = await response.json();
+      if (data.success && data.sections) {
+        setWordProgress('Creazione Word...');
+        await generateForgeProposalWord(idea, currentAnalysis, data.sections);
+      }
+    } catch (error) {
+      console.error('Error generating Word proposal:', error);
+    } finally {
+      setIsGeneratingWord(false);
+      setWordProgress('');
     }
   };
 
@@ -85,25 +112,47 @@ export function WarRoom() {
                 <h2 className="text-xl font-bold text-text-primary">Report di Analisi</h2>
                 <p className="text-sm text-text-muted">Generato con Claude AI</p>
               </div>
-              <motion.button
-                onClick={handleExportPDF}
-                disabled={isExporting}
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                className="flex items-center gap-2 px-4 py-2 bg-accent-purple hover:bg-accent-purple/90 text-white rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {isExporting ? (
-                  <>
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                    <span>Esportando...</span>
-                  </>
-                ) : (
-                  <>
-                    <Download className="w-4 h-4" />
-                    <span>Esporta PDF</span>
-                  </>
-                )}
-              </motion.button>
+              <div className="flex items-center gap-2">
+                <motion.button
+                  onClick={handleGenerateWordProposal}
+                  disabled={isGeneratingWord}
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {isGeneratingWord ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      <span>{wordProgress}</span>
+                    </>
+                  ) : (
+                    <>
+                      <FileText className="w-4 h-4" />
+                      <span>Proposta Word AI</span>
+                      <Sparkles className="w-3 h-3" />
+                    </>
+                  )}
+                </motion.button>
+                <motion.button
+                  onClick={handleExportPDF}
+                  disabled={isExporting}
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  className="flex items-center gap-2 px-4 py-2 bg-accent-purple hover:bg-accent-purple/90 text-white rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {isExporting ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      <span>Esportando...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Download className="w-4 h-4" />
+                      <span>Esporta PDF</span>
+                    </>
+                  )}
+                </motion.button>
+              </div>
             </div>
 
             {/* Verdict Banner + Score Card */}

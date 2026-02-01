@@ -48,17 +48,21 @@ import {
   importFromVVA
 } from '@/lib/portfolio-store';
 import { SavedAnalysis } from '@/lib/history';
+import { generateProposalWord } from '@/lib/screener-proposal-word';
+import { Loader2, FileText, Sparkles } from 'lucide-react';
 
 export default function PortfolioPage() {
   const [portfolio, setPortfolio] = useState<PortfolioStartup[]>([]);
   const [stats, setStats] = useState<PortfolioStats | null>(null);
-  const [filter, setFilter] = useState<'all' | 'CORE' | 'SATELLITE' | 'REJECT'>('all');
+  const [filter, setFilter] = useState<'all' | 'GO' | 'PARK'>('all');
   const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'watching' | 'exited' | 'failed'>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [vvaFavorites, setVvaFavorites] = useState<SavedAnalysis[]>([]);
   const [showVVAImport, setShowVVAImport] = useState(false);
+  const [generatingWordId, setGeneratingWordId] = useState<string | null>(null);
+  const [genProgress, setGenProgress] = useState('');
 
   useEffect(() => {
     loadData();
@@ -109,9 +113,8 @@ export default function PortfolioPage() {
 
   const getVerdettoIcon = (verdetto: string) => {
     switch (verdetto) {
-      case 'CORE': return <CheckCircle2 className="w-5 h-5 text-emerald-400" />;
-      case 'SATELLITE': return <AlertTriangle className="w-5 h-5 text-amber-400" />;
-      case 'REJECT': return <XCircle className="w-5 h-5 text-red-400" />;
+      case 'GO': return <CheckCircle2 className="w-5 h-5 text-emerald-400" />;
+      case 'PARK': return <AlertTriangle className="w-5 h-5 text-amber-400" />;
       default: return null;
     }
   };
@@ -293,22 +296,21 @@ export default function PortfolioPage() {
             />
           </div>
 
-          {/* Verdetto Filter */}
+          {/* Verdetto Filter - GO/PARK */}
           <div className="flex gap-2">
-            {(['all', 'CORE', 'SATELLITE', 'REJECT'] as const).map((f) => (
+            {(['all', 'GO', 'PARK'] as const).map((f) => (
               <button
                 key={f}
                 onClick={() => setFilter(f)}
                 className={`px-4 py-2.5 rounded-xl font-medium transition-all ${
                   filter === f
-                    ? f === 'CORE' ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
-                    : f === 'SATELLITE' ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30'
-                    : f === 'REJECT' ? 'bg-red-500/20 text-red-400 border border-red-500/30'
+                    ? f === 'GO' ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
+                    : f === 'PARK' ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30'
                     : 'bg-violet-500/20 text-violet-400 border border-violet-500/30'
                     : 'bg-slate-800/50 text-slate-400 border border-slate-700 hover:border-slate-600'
                 }`}
               >
-                {f === 'all' ? 'Tutti' : f}
+                {f === 'all' ? 'Tutti' : f === 'GO' ? '🚀 Go' : '⏸️ Park'}
               </button>
             ))}
           </div>
@@ -375,9 +377,8 @@ export default function PortfolioPage() {
                 >
                   {/* Verdetto Icon */}
                   <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${
-                    startup.result.verdetto === 'CORE' ? 'bg-emerald-500/20' :
-                    startup.result.verdetto === 'SATELLITE' ? 'bg-amber-500/20' :
-                    'bg-red-500/20'
+                    startup.result.verdetto === 'GO' ? 'bg-emerald-500/20' :
+                    'bg-amber-500/20'
                   }`}>
                     {getVerdettoIcon(startup.result.verdetto)}
                   </div>
@@ -517,7 +518,46 @@ export default function PortfolioPage() {
                               </div>
                             )}
 
-                            <div className="flex gap-2 pt-2">
+                            <div className="flex flex-wrap gap-2 pt-2">
+                              <button
+                                onClick={async (e) => {
+                                  e.stopPropagation();
+                                  setGeneratingWordId(startup.id);
+                                  setGenProgress('Generazione AI in corso...');
+                                  try {
+                                    const response = await fetch('/api/screener/proposal', {
+                                      method: 'POST',
+                                      headers: { 'Content-Type': 'application/json' },
+                                      body: JSON.stringify({ input: startup.input, result: startup.result })
+                                    });
+                                    const data = await response.json();
+                                    if (data.success && data.sections) {
+                                      setGenProgress('Creazione Word...');
+                                      await generateProposalWord(startup.input, startup.result, data.sections);
+                                    }
+                                  } catch (error) {
+                                    console.error('Error generating proposal:', error);
+                                  } finally {
+                                    setGeneratingWordId(null);
+                                    setGenProgress('');
+                                  }
+                                }}
+                                disabled={generatingWordId === startup.id}
+                                className="px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-lg text-sm font-medium flex items-center gap-2 transition-colors disabled:opacity-50"
+                              >
+                                {generatingWordId === startup.id ? (
+                                  <>
+                                    <Loader2 className="w-4 h-4 animate-spin" />
+                                    {genProgress}
+                                  </>
+                                ) : (
+                                  <>
+                                    <FileText className="w-4 h-4" />
+                                    Genera Proposta Word
+                                    <Sparkles className="w-3 h-3" />
+                                  </>
+                                )}
+                              </button>
                               <button
                                 onClick={(e) => {
                                   e.stopPropagation();

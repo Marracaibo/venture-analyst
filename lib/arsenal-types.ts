@@ -15,6 +15,7 @@ export type ArsenalItemId =
   | 'pitch-qa-trainer'
   | 'executive-summary'
   | 'cap-table-sim'
+  | 'investment-proposal'
   // Validation
   | 'interview-scripts'
   | 'experiment-tracker'
@@ -392,6 +393,17 @@ export const ARSENAL_ITEMS: ArsenalItem[] = [
     outputType: 'spreadsheet',
     howItWorks: 'Simula la diluzione attraverso diversi round di funding (pre-seed, seed, Series A) mostrando l\'impatto sulla ownership dei founder e suggerendo termini founder-friendly.',
     whatYouGet: ['Cap table iniziale', '4 scenari di round', 'Dilution waterfall', 'ESOP recommendations', 'Formula Google Sheets', 'Term sheet tips']
+  },
+  {
+    id: 'investment-proposal',
+    name: 'Investment Proposal',
+    description: 'Proposta di investimento professionale completa',
+    icon: '📑',
+    category: 'fundraising',
+    estimatedTime: '~15 sec',
+    outputType: 'text',
+    howItWorks: 'Genera un documento di proposta di investimento completo basato sull\'analisi AI della startup. Include valutazione dettagliata, punti di forza/debolezza, pacchetti di investimento e termini suggeriti.',
+    whatYouGet: ['Executive Summary', 'Valutazione AI 5 filtri', 'Analisi SWOT', 'Pacchetti investimento', 'Term sheet indicativo', 'Timeline e next steps']
   }
 ];
 
