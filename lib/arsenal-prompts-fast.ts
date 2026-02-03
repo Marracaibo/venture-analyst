@@ -1003,6 +1003,57 @@ Accelerazione: Single trigger su M&A
 - Incentivi fiscali investitori (30-50% detrazione)
 - Fail fast: liquidazione semplificata
 - Work for equity agevolato`
+  },
+
+  'investment-proposal': {
+    maxTokens: 1500,
+    prompt: `Crea una proposta di investimento professionale:
+
+## 📋 EXECUTIVE SUMMARY
+- **Opportunità:** Descrizione in 2-3 frasi
+- **Ask:** Importo richiesto e valuation
+- **Use of Funds:** Come verranno usati i fondi
+
+## 🎯 IL PROBLEMA
+- Problema specifico che risolviamo
+- Dimensione del problema (numeri)
+- Chi soffre di questo problema
+
+## 💡 LA SOLUZIONE
+- Come risolviamo il problema
+- Differenziazione vs competitor
+- Moat/barriere all'ingresso
+
+## 📊 TRACTION & METRICHE
+- MRR/ARR attuale
+- Crescita mese su mese
+- Clienti paganti
+- Unit economics (CAC, LTV, LTV:CAC)
+
+## 💰 FINANCIALS
+- Revenue attuale e proiezioni 3 anni
+- Burn rate mensile
+- Runway attuale
+- Break-even previsto
+
+## 👥 TEAM
+- Founder 1: Background e ruolo
+- Founder 2: Background e ruolo
+- Advisor chiave (se presenti)
+
+## 🚀 ROADMAP
+- Milestone Q1: [Obiettivo]
+- Milestone Q2: [Obiettivo]
+- Milestone Q3: [Obiettivo]
+- Milestone Q4: [Obiettivo]
+
+## 📈 DEAL TERMS
+- Round: Pre-seed/Seed/Series A
+- Valuation: Pre-money
+- Strumento: SAFE/Equity
+- Diritti investitori
+
+Sii specifico con numeri reali. Evita genericità.`
   }
 };
 

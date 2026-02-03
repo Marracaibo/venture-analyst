@@ -177,7 +177,7 @@ function determineEngagement(
   input: StartupInput, 
   filters: FiltersResult, 
   gaps: GapResult
-): { type: 'CORE' | 'SATELLITE' | 'REJECT'; roles: OperationalRole[]; reasoning: string } {
+): { type: 'GO' | 'PARK'; roles: OperationalRole[]; reasoning: string } {
   
   // REJECT se:
   // - Meno di 3 filtri passati
@@ -187,7 +187,7 @@ function determineEngagement(
   
   if (filters.passedCount < 3) {
     return {
-      type: 'REJECT',
+      type: 'PARK',
       roles: [],
       reasoning: `Solo ${filters.passedCount}/5 filtri chiave superati. Servono almeno 3/5 per considerare la startup.`
     };
@@ -195,7 +195,7 @@ function determineEngagement(
 
   if (input.coachability === 'bassa') {
     return {
-      type: 'REJECT',
+      type: 'PARK',
       roles: [],
       reasoning: 'Coachability bassa - il founder non è ricettivo al feedback. Deal breaker per venture building.'
     };
@@ -203,7 +203,7 @@ function determineEngagement(
 
   if (input.capTable === 'sporca') {
     return {
-      type: 'REJECT',
+      type: 'PARK',
       roles: [],
       reasoning: 'Cap Table problematica con troppi soci. Richiede pulizia prima di procedere.'
     };
@@ -227,20 +227,26 @@ function determineEngagement(
 
   if (filters.passedCount >= 4 && hasOperationalNeed && (isHighPriority || isMediumPriority) && hasGoodPotential) {
     return {
-      type: 'CORE',
+      type: 'GO',
       roles: gaps.rolesNeeded,
-      reasoning: `Startup con forte potenziale (${filters.passedCount}/5 filtri). Richiede ruoli operativi: ${gaps.rolesNeeded.join(', ').toUpperCase()}. Candidata per Core Acceleration con massimo 3 startup/anno.`
+      reasoning: `Startup con forte potenziale (${filters.passedCount}/5 filtri). Richiede ruoli operativi: ${gaps.rolesNeeded.join(', ').toUpperCase()}. Candidata per Co-Founding Partnership.`
     };
   }
 
-  // SATELLITE per tutti gli altri casi che passano almeno 3 filtri
-  // - Offriamo servizi in cambio di equity senza ruoli operativi
+  // GO anche per startup promettenti che passano almeno 4 filtri
+  if (filters.passedCount >= 4) {
+    return {
+      type: 'GO',
+      roles: [],
+      reasoning: `Startup promettente (${filters.passedCount}/5 filtri). Offriamo partnership co-founding.`
+    };
+  }
+
+  // PARK per tutti gli altri casi
   return {
-    type: 'SATELLITE',
+    type: 'PARK',
     roles: [],
-    reasoning: filters.passedCount >= 4 
-      ? 'Startup promettente ma non richiede ruoli operativi o verticale non prioritario. Offriamo servizi in cambio di equity.'
-      : `${filters.passedCount}/5 filtri superati. Possiamo colmare i gap offrendo servizi in cambio di quote, senza ruoli operativi iniziali.`
+    reasoning: `${filters.passedCount}/5 filtri superati. Necessita più validazione prima di procedere.`
   };
 }
 
@@ -250,7 +256,7 @@ function determineEngagement(
 
 function generatePackages(
   input: StartupInput, 
-  engagement: 'CORE' | 'SATELLITE',
+  engagement: 'GO' | 'PARK',
   roles: OperationalRole[],
   gaps: GapResult
 ): PackageOffer[] {
@@ -258,7 +264,7 @@ function generatePackages(
   const startupName = input.nome || 'Startup';
   const verticalLabel = input.verticale.replace(/-/g, ' ').toUpperCase();
 
-  if (engagement === 'CORE') {
+  if (engagement === 'GO') {
     // ==========================================
     // CORE: 30-60% equity basato sul contributo
     // ==========================================
@@ -487,7 +493,7 @@ export function evaluateStartup(input: StartupInput): ScreenerResult {
   
   // 4. Genera kill switches
   const killSwitches: string[] = [];
-  if (engagement.type === 'REJECT') {
+  if (engagement.type === 'PARK') {
     if (filters.passedCount < 3) killSwitches.push(`Solo ${filters.passedCount}/5 filtri chiave superati`);
     if (input.coachability === 'bassa') killSwitches.push('Coachability bassa - founder non ricettivo');
     if (input.capTable === 'sporca') killSwitches.push('Cap Table problematica');
@@ -527,37 +533,29 @@ export function evaluateStartup(input: StartupInput): ScreenerResult {
   }
 
   // 6. Genera pacchetti
-  const packages = engagement.type === 'REJECT' 
+  const packages = engagement.type === 'PARK' && filters.passedCount < 3
     ? [] 
     : generatePackages(input, engagement.type, engagement.roles, gaps);
 
   // 7. Next steps
-  const nextSteps = engagement.type === 'REJECT'
+  const nextSteps = engagement.type === 'GO'
     ? [
+        'Call di approfondimento con partner Forge (30 min)',
+        'Due diligence tecnica e commerciale',
+        'Definizione term sheet e ruoli operativi',
+        'Kick-off piano 90 giorni'
+      ]
+    : [
         'Lavora sui filtri non superati prima di ripresentarti',
         'Se cap table sporca: risolvi la struttura societaria',
         'Se coachability: valuta se sei pronto per un percorso di accelerazione'
-      ]
-    : engagement.type === 'CORE'
-      ? [
-          'Call di approfondimento con partner Forge (30 min)',
-          'Due diligence tecnica e commerciale',
-          'Definizione term sheet e ruoli operativi',
-          'Kick-off piano 90 giorni'
-        ]
-      : [
-          'Review proposta servizi-per-equity',
-          'Definizione milestones per eventuale upgrade a CORE',
-          'Setup check-in mensili',
-          'Firma accordo e avvio collaborazione'
-        ];
+      ];
 
   // 8. Costruisci result
   const verdetto: Verdetto = engagement.type;
   const verdettoLabel = 
-    verdetto === 'CORE' ? 'Core Acceleration' :
-    verdetto === 'SATELLITE' ? 'Satellite Partnership' :
-    'Non Idonea';
+    verdetto === 'GO' ? 'Go - Co-Founding Partnership' :
+    'Park - Non ora';
 
   return {
     verdetto,
@@ -578,7 +576,7 @@ export function evaluateStartup(input: StartupInput): ScreenerResult {
     },
     gapsIdentified: gaps.gaps,
     servicesWeCanOffer: gaps.services,
-    engagementType: engagement.type === 'REJECT' ? undefined : engagement.type,
+    engagementType: engagement.type === 'GO' ? engagement.type : undefined,
     operationalRoles: engagement.roles.length > 0 ? engagement.roles : undefined,
     equityProposed: packages.length > 0 ? packages.map(p => p.equityRange).join(' + ') : undefined
   };

@@ -122,9 +122,9 @@ export interface PotentialAssessment {
 // CORE vs SATELLITE - Basato su ruoli operativi
 // ==========================================
 export interface EngagementType {
-  type: 'CORE' | 'SATELLITE';
-  operationalRoles: OperationalRole[];  // ruoli che prendiamo (CORE)
-  equityForServices: boolean;           // quota per servizi (SATELLITE)
+  type: 'GO' | 'PARK';
+  operationalRoles: OperationalRole[];  // ruoli che prendiamo (GO)
+  equityForServices: boolean;           // quota per servizi
   servicesOffered: string[];            // cosa offriamo
 }
 
@@ -271,7 +271,7 @@ export interface ScreenerResult {
   servicesWeCanOffer?: string[];
   
   // Engagement Type
-  engagementType?: 'CORE' | 'SATELLITE';
+  engagementType?: 'GO' | 'PARK';
   operationalRoles?: OperationalRole[];
   equityProposed?: string;
 }

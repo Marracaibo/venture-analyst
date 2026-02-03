@@ -34,7 +34,7 @@ export function saveToPortfolio(
     result,
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
-    status: result.verdetto === 'REJECT' ? 'watching' : 'active',
+    status: result.verdetto === 'PARK' ? 'watching' : 'active',
     metricsHistory: input.metrics ? [{
       date: new Date().toISOString(),
       metrics: input.metrics
@@ -117,7 +117,7 @@ export function deleteStartup(id: string): boolean {
 }
 
 // Filtra portfolio per verdetto
-export function getPortfolioByVerdetto(verdetto: 'CORE' | 'SATELLITE' | 'REJECT'): PortfolioStartup[] {
+export function getPortfolioByVerdetto(verdetto: 'GO' | 'PARK'): PortfolioStartup[] {
   return getPortfolio().filter(s => s.result.verdetto === verdetto);
 }
 
@@ -129,9 +129,8 @@ export function getPortfolioByStatus(status: PortfolioStartup['status']): Portfo
 // Statistiche portfolio
 export interface PortfolioStats {
   total: number;
-  core: number;
-  satellite: number;
-  reject: number;
+  go: number;
+  park: number;
   active: number;
   watching: number;
   exited: number;
@@ -146,9 +145,8 @@ export function getPortfolioStats(): PortfolioStats {
   
   const stats: PortfolioStats = {
     total: portfolio.length,
-    core: portfolio.filter(s => s.result.verdetto === 'CORE').length,
-    satellite: portfolio.filter(s => s.result.verdetto === 'SATELLITE').length,
-    reject: portfolio.filter(s => s.result.verdetto === 'REJECT').length,
+    go: portfolio.filter(s => s.result.verdetto === 'GO').length,
+    park: portfolio.filter(s => s.result.verdetto === 'PARK').length,
     active: portfolio.filter(s => s.status === 'active').length,
     watching: portfolio.filter(s => s.status === 'watching').length,
     exited: portfolio.filter(s => s.status === 'exited').length,
@@ -189,15 +187,12 @@ export function getVVAHistory(): SavedAnalysis[] {
 // Converti analisi VVA in formato Portfolio
 function convertVVAToPortfolio(vva: SavedAnalysis): PortfolioStartup {
   const verdict = vva.analysis.verdict;
-  let verdetto: 'CORE' | 'SATELLITE' | 'REJECT' = 'SATELLITE';
-  let verdettoLabel = 'Satellite Partnership';
+  let verdetto: 'GO' | 'PARK' = 'PARK';
+  let verdettoLabel = 'Park - Non ora';
   
   if (verdict === 'green') {
-    verdetto = 'CORE';
-    verdettoLabel = 'Core Acceleration';
-  } else if (verdict === 'red') {
-    verdetto = 'REJECT';
-    verdettoLabel = 'Non Idonea';
+    verdetto = 'GO';
+    verdettoLabel = 'Go - Co-Founding Partnership';
   }
 
   const input: StartupInput = {
@@ -231,7 +226,7 @@ function convertVVAToPortfolio(vva: SavedAnalysis): PortfolioStartup {
     result,
     createdAt: new Date(vva.timestamp).toISOString(),
     updatedAt: new Date().toISOString(),
-    status: verdetto === 'REJECT' ? 'watching' : 'active',
+    status: verdetto === 'PARK' ? 'watching' : 'active',
     notes: `Importato da VVA - Verdict originale: ${verdict}`,
   };
 }

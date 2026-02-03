@@ -460,6 +460,43 @@ Per ogni: pre-money, amount, dilution, post-money table
 ## GDPR CHECKLIST (5 punti)`
       }
     ]
+  },
+
+  'investment-proposal': {
+    maxTokensPerPart: 1500,
+    parts: [
+      {
+        id: 'summary',
+        title: 'Executive Summary & Problem',
+        prompt: `INVESTMENT PROPOSAL parte 1:
+
+## EXECUTIVE SUMMARY
+- Opportunità in 2-3 frasi
+- Ask e valuation
+- Use of funds
+
+## IL PROBLEMA
+- Problema specifico
+- Dimensione (numeri)
+- Target che soffre`
+      },
+      {
+        id: 'solution',
+        title: 'Solution & Traction',
+        prompt: `INVESTMENT PROPOSAL parte 2:
+
+## LA SOLUZIONE
+- Come risolviamo
+- Differenziazione
+- Moat
+
+## TRACTION
+- MRR/ARR
+- Crescita %
+- Clienti
+- Unit economics`
+      }
+    ]
   }
 };
 

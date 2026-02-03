@@ -260,12 +260,12 @@ export default function PortfolioPage() {
               <div className="text-sm text-slate-400">Totale Startup</div>
             </div>
             <div className="bg-emerald-500/10 rounded-2xl p-4 border border-emerald-500/30">
-              <div className="text-3xl font-bold text-emerald-400">{stats.core}</div>
-              <div className="text-sm text-emerald-400/70">Core</div>
+              <div className="text-3xl font-bold text-emerald-400">{stats.go}</div>
+              <div className="text-sm text-emerald-400/70">GO</div>
             </div>
             <div className="bg-amber-500/10 rounded-2xl p-4 border border-amber-500/30">
-              <div className="text-3xl font-bold text-amber-400">{stats.satellite}</div>
-              <div className="text-sm text-amber-400/70">Satellite</div>
+              <div className="text-3xl font-bold text-amber-400">{stats.park}</div>
+              <div className="text-sm text-amber-400/70">PARK</div>
             </div>
             <div className="bg-blue-500/10 rounded-2xl p-4 border border-blue-500/30">
               <div className="text-3xl font-bold text-blue-400">{stats.active}</div>

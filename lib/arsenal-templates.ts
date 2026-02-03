@@ -505,7 +505,35 @@ SaaS Subscription
 1. No patti parasociali
 2. Quote 50/50
 3. No marchio registrato
-4. Ignorare GDPR`
+4. Ignorare GDPR`,
+
+  'investment-proposal': (idea, analysis) => `# Investment Proposal - ${analysis.ideaTitle}
+
+## EXECUTIVE SUMMARY
+**Opportunità:** ${idea.solution}
+**Target:** ${idea.target}
+**Problema:** ${idea.problem}
+
+## IL PROBLEMA
+${idea.problem}
+
+Chi soffre: ${idea.target}
+
+## LA SOLUZIONE
+${idea.solution}
+
+## TRACTION
+[Inserire metriche]
+- MRR: €
+- Clienti: 
+- Crescita: %
+
+## TEAM
+[Inserire team]
+
+## ASK
+€[Amount] per [% equity]
+Valuation: €[Pre-money]`
 };
 
 export function generateArsenalContent(

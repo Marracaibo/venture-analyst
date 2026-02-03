@@ -251,7 +251,8 @@ export function StartupArsenal() {
       'roadmap-generator': <Target className="w-5 h-5" />,
       'executive-summary': <FileText className="w-5 h-5" />,
       'legal-starter-pack': <FileText className="w-5 h-5" />,
-      'cap-table-sim': <PieChart className="w-5 h-5" />
+      'cap-table-sim': <PieChart className="w-5 h-5" />,
+      'investment-proposal': <FileText className="w-5 h-5" />
     };
     return icons[itemId] || <FileText className="w-5 h-5" />;
   };
