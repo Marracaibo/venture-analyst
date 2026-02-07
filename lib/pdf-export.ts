@@ -34,6 +34,7 @@ function addSectionHeader(doc: jsPDF, title: string, yPos: number, color: number
 export function generateAnalysisPDF(analysis: AnalysisResult): void {
   const doc = new jsPDF();
   const pageWidth = doc.internal.pageSize.getWidth();
+  const contentWidth = pageWidth - 30;
   let yPos = 20;
 
   // Helper function to add new page if needed
@@ -103,35 +104,59 @@ export function generateAnalysisPDF(analysis: AnalysisResult): void {
   
   yPos += 35;
 
-  // ========== SCORES ==========
-  checkNewPage(50);
+  // ========== SCORES WITH VISUAL BARS ==========
+  checkNewPage(90);
   yPos = addSectionHeader(doc, 'SCORE COMPLESSIVO', yPos, [139, 92, 246]);
 
   const scores = analysis.scores;
-  const scoreData = [
-    ['Market Size', `${scores.marketSize}/100`],
-    ['Competition', `${scores.competition}/100`],
-    ['Execution Risk', `${scores.executionRisk}/100`],
-    ['Differentiation', `${scores.differentiation}/100`],
-    ['Timing', `${scores.timing}/100`],
-    ['OVERALL', `${scores.overall}/100`],
+  const scoreItems = [
+    { label: 'Market Size', value: scores.marketSize, color: [59, 130, 246] as [number, number, number] },
+    { label: 'Competition', value: scores.competition, color: [249, 115, 22] as [number, number, number] },
+    { label: 'Execution Risk', value: scores.executionRisk, color: [234, 179, 8] as [number, number, number] },
+    { label: 'Differentiation', value: scores.differentiation, color: [139, 92, 246] as [number, number, number] },
+    { label: 'Timing', value: scores.timing, color: [34, 197, 94] as [number, number, number] },
   ];
 
-  autoTable(doc, {
-    startY: yPos,
-    head: [['Metrica', 'Score']],
-    body: scoreData,
-    theme: 'striped',
-    headStyles: { fillColor: [139, 92, 246], textColor: 255 },
-    styles: { fontSize: 10 },
-    columnStyles: {
-      0: { fontStyle: 'bold' },
-      1: { halign: 'center' },
-    },
-    margin: { left: 15, right: 15 },
+  const barWidth = 100;
+  const barHeight = 8;
+  const barX = 65;
+
+  scoreItems.forEach((item) => {
+    // Label
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(60, 60, 60);
+    doc.text(item.label, 15, yPos + 6);
+
+    // Background bar
+    doc.setFillColor(230, 230, 235);
+    doc.roundedRect(barX, yPos, barWidth, barHeight, 2, 2, 'F');
+
+    // Filled bar
+    const fillWidth = (item.value / 100) * barWidth;
+    doc.setFillColor(item.color[0], item.color[1], item.color[2]);
+    doc.roundedRect(barX, yPos, Math.max(fillWidth, 4), barHeight, 2, 2, 'F');
+
+    // Score text
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(item.color[0], item.color[1], item.color[2]);
+    doc.text(`${item.value}`, barX + barWidth + 5, yPos + 6);
+
+    yPos += 14;
   });
 
-  yPos = doc.lastAutoTable.finalY + 15;
+  // Overall score - larger display
+  yPos += 5;
+  const overallColor = scores.overall >= 70 ? [34, 197, 94] : scores.overall >= 40 ? [234, 179, 8] : [239, 68, 68];
+  doc.setFillColor(overallColor[0], overallColor[1], overallColor[2]);
+  doc.roundedRect(15, yPos, contentWidth, 18, 3, 3, 'F');
+  doc.setTextColor(255, 255, 255);
+  doc.setFontSize(13);
+  doc.setFont('helvetica', 'bold');
+  doc.text(`SCORE COMPLESSIVO: ${scores.overall}/100`, contentWidth / 2 + 15, yPos + 12, { align: 'center' });
+
+  yPos += 28;
 
   // ========== COMPETITORS ==========
   checkNewPage(60);
@@ -166,31 +191,70 @@ export function generateAnalysisPDF(analysis: AnalysisResult): void {
     yPos = doc.lastAutoTable.finalY + 15;
   }
 
-  // ========== MARKET SIZE ==========
-  checkNewPage(50);
+  // ========== MARKET SIZE WITH CONCENTRIC CIRCLES ==========
+  checkNewPage(100);
   yPos = addSectionHeader(doc, 'DIMENSIONE MERCATO', yPos, [6, 182, 212]);
 
-  const marketData = [
-    ['TAM (Total Addressable Market)', analysis.marketSize.tam.value, analysis.marketSize.tam.description],
-    ['SAM (Serviceable Addressable Market)', analysis.marketSize.sam.value, analysis.marketSize.sam.description],
-    ['SOM (Serviceable Obtainable Market)', analysis.marketSize.som.value, analysis.marketSize.som.description],
+  // Draw concentric circles (TAM > SAM > SOM)
+  const circleX = 55;
+  const circleY = yPos + 40;
+  const tamRadius = 35;
+  const samRadius = 24;
+  const somRadius = 14;
+
+  // TAM circle
+  doc.setFillColor(6, 182, 212);
+  doc.circle(circleX, circleY, tamRadius, 'F');
+  doc.setFontSize(8);
+  doc.setTextColor(255, 255, 255);
+  doc.text('TAM', circleX - 4, circleY - tamRadius + 8);
+
+  // SAM circle
+  doc.setFillColor(34, 150, 190);
+  doc.circle(circleX, circleY, samRadius, 'F');
+  doc.setFontSize(8);
+  doc.text('SAM', circleX - 4, circleY - samRadius + 8);
+
+  // SOM circle
+  doc.setFillColor(20, 120, 160);
+  doc.circle(circleX, circleY, somRadius, 'F');
+  doc.setFontSize(7);
+  doc.text('SOM', circleX - 4, circleY + 2);
+
+  // Market data text on the right
+  const textX = 100;
+  let textY = yPos + 10;
+
+  const marketItems = [
+    { label: 'TAM', full: 'Total Addressable Market', data: analysis.marketSize.tam, color: [6, 182, 212] as [number, number, number] },
+    { label: 'SAM', full: 'Serviceable Addressable Market', data: analysis.marketSize.sam, color: [34, 150, 190] as [number, number, number] },
+    { label: 'SOM', full: 'Serviceable Obtainable Market', data: analysis.marketSize.som, color: [20, 120, 160] as [number, number, number] },
   ];
 
-  autoTable(doc, {
-    startY: yPos,
-    head: [['Metrica', 'Valore', 'Descrizione']],
-    body: marketData,
-    theme: 'striped',
-    headStyles: { fillColor: [6, 182, 212], textColor: 255 },
-    styles: { fontSize: 9 },
-    columnStyles: {
-      0: { fontStyle: 'bold', cellWidth: 55 },
-      1: { cellWidth: 30 },
-    },
-    margin: { left: 15, right: 15 },
+  marketItems.forEach((item) => {
+    // Color dot
+    doc.setFillColor(item.color[0], item.color[1], item.color[2]);
+    doc.circle(textX, textY - 1.5, 3, 'F');
+
+    // Label
+    doc.setFontSize(11);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(40, 40, 40);
+    doc.text(`${item.label}: ${item.data.value}`, textX + 6, textY);
+
+    // Description
+    doc.setFontSize(8);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(100, 100, 100);
+    const descLines = doc.splitTextToSize(item.data.description, 85);
+    descLines.slice(0, 3).forEach((line: string, idx: number) => {
+      doc.text(line, textX + 6, textY + 5 + (idx * 4));
+    });
+
+    textY += 22;
   });
 
-  yPos = doc.lastAutoTable.finalY + 15;
+  yPos += 85;
 
   // ========== GROWTH EXPERIMENTS ==========
   checkNewPage(60);
@@ -199,7 +263,7 @@ export function generateAnalysisPDF(analysis: AnalysisResult): void {
   if (analysis.growthExperiments.length > 0) {
     const experimentsData = analysis.growthExperiments.map(e => [
       e.title,
-      e.description.substring(0, 80) + '...',
+      e.description,
       e.budget,
       e.timeframe,
       e.priority.toUpperCase(),
@@ -211,7 +275,14 @@ export function generateAnalysisPDF(analysis: AnalysisResult): void {
       body: experimentsData,
       theme: 'striped',
       headStyles: { fillColor: [34, 197, 94], textColor: 255 },
-      styles: { fontSize: 8 },
+      styles: { fontSize: 8, cellPadding: 3 },
+      columnStyles: {
+        0: { fontStyle: 'bold', cellWidth: 35 },
+        1: { cellWidth: 65 },
+        2: { cellWidth: 22 },
+        3: { cellWidth: 22 },
+        4: { cellWidth: 18, halign: 'center' },
+      },
       margin: { left: 15, right: 15 },
     });
 
@@ -226,7 +297,7 @@ export function generateAnalysisPDF(analysis: AnalysisResult): void {
     const roadmapData = analysis.roadmap.map(t => [
       `Week ${t.week}`,
       t.title,
-      t.description.substring(0, 60) + '...',
+      t.description,
       t.category.charAt(0).toUpperCase() + t.category.slice(1),
     ]);
 
@@ -236,7 +307,13 @@ export function generateAnalysisPDF(analysis: AnalysisResult): void {
       body: roadmapData,
       theme: 'striped',
       headStyles: { fillColor: [249, 115, 22], textColor: 255 },
-      styles: { fontSize: 8 },
+      styles: { fontSize: 8, cellPadding: 3 },
+      columnStyles: {
+        0: { cellWidth: 22, halign: 'center' },
+        1: { fontStyle: 'bold', cellWidth: 45 },
+        2: { cellWidth: 80 },
+        3: { cellWidth: 22, halign: 'center' },
+      },
       margin: { left: 15, right: 15 },
     });
 
@@ -251,8 +328,8 @@ export function generateAnalysisPDF(analysis: AnalysisResult): void {
     const riskData = analysis.risks.map(r => [
       r.severity.toUpperCase(),
       r.title,
-      r.description.substring(0, 60) + '...',
-      (r.mitigation || 'N/A').substring(0, 60) + '...',
+      r.description,
+      r.mitigation || 'N/A',
     ]);
 
     autoTable(doc, {
@@ -261,7 +338,13 @@ export function generateAnalysisPDF(analysis: AnalysisResult): void {
       body: riskData,
       theme: 'striped',
       headStyles: { fillColor: [239, 68, 68], textColor: 255 },
-      styles: { fontSize: 8 },
+      styles: { fontSize: 8, cellPadding: 3 },
+      columnStyles: {
+        0: { cellWidth: 20, halign: 'center' },
+        1: { fontStyle: 'bold', cellWidth: 35 },
+        2: { cellWidth: 55 },
+        3: { cellWidth: 55 },
+      },
       didParseCell: (data) => {
         if (data.section === 'body' && data.column.index === 0) {
           const severity = data.cell.text[0];
@@ -314,7 +397,7 @@ export function generateAnalysisPDF(analysis: AnalysisResult): void {
       c.name,
       c.role,
       c.company,
-      c.relevance.substring(0, 50) + '...',
+      c.relevance,
     ]);
 
     autoTable(doc, {
