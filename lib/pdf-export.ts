@@ -45,23 +45,36 @@ export function generateAnalysisPDF(analysis: AnalysisResult): void {
     }
   };
 
+  // Helper: write a paragraph of wrapped text
+  const writeParagraph = (text: string, x: number, maxWidth: number, fontSize: number = 10, color: [number, number, number] = [60, 60, 60]) => {
+    doc.setFontSize(fontSize);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(color[0], color[1], color[2]);
+    const lines: string[] = doc.splitTextToSize(text, maxWidth);
+    lines.forEach((line: string) => {
+      checkNewPage(8);
+      doc.text(line, x, yPos);
+      yPos += fontSize * 0.5;
+    });
+    yPos += 3;
+  };
+
   // ========== HEADER ==========
-  // Gradient-like header with two colors
   doc.setFillColor(139, 92, 246); // Purple
-  doc.rect(0, 0, pageWidth, 50, 'F');
+  doc.rect(0, 0, pageWidth, 55, 'F');
   doc.setFillColor(99, 52, 206); // Darker purple
-  doc.rect(0, 40, pageWidth, 10, 'F');
+  doc.rect(0, 45, pageWidth, 10, 'F');
   
   // Title
   doc.setTextColor(255, 255, 255);
-  doc.setFontSize(28);
+  doc.setFontSize(24);
   doc.setFont('helvetica', 'bold');
-  doc.text('VIRTUAL VENTURE ANALYST', 15, 25);
+  doc.text('FORGE STUDIO', 15, 22);
   
   // Subtitle
-  doc.setFontSize(11);
+  doc.setFontSize(13);
   doc.setFont('helvetica', 'normal');
-  doc.text('Report di Analisi Startup', 15, 35);
+  doc.text(`Report di Analisi: ${analysis.ideaTitle}`, 15, 34);
   
   // Date on the right
   doc.setFontSize(10);
@@ -70,93 +83,58 @@ export function generateAnalysisPDF(analysis: AnalysisResult): void {
     month: 'long', 
     year: 'numeric'
   });
-  doc.text(dateStr, pageWidth - 15, 35, { align: 'right' });
+  doc.text(dateStr, pageWidth - 15, 22, { align: 'right' });
+  doc.setFontSize(9);
+  doc.text('Documento riservato', pageWidth - 15, 30, { align: 'right' });
 
-  yPos = 60;
+  yPos = 65;
 
-  // ========== IDEA TITLE ==========
-  doc.setTextColor(0, 0, 0);
-  doc.setFontSize(18);
-  doc.setFont('helvetica', 'bold');
-  doc.text(analysis.ideaTitle, 15, yPos);
-  yPos += 10;
+  // ========== INTRODUZIONE ==========
+  yPos = addSectionHeader(doc, 'INTRODUZIONE', yPos, [139, 92, 246]);
 
-  // ========== VERDICT BOX ==========
-  const verdictColors = {
-    green: { bg: [34, 197, 94], text: 'PROMETTENTE' },
-    yellow: { bg: [234, 179, 8], text: 'CAUTO' },
-    red: { bg: [239, 68, 68], text: 'PROBLEMATICO' },
-  };
-  const verdict = verdictColors[analysis.verdict];
+  const introText1 = `Forge Studio e' uno startup studio che opera come co-founder tecnico e strategico per startup early-stage. Il nostro modello si basa sulla selezione accurata di progetti ad alto potenziale, ai quali offriamo competenze operative (CTO, CMO, CFO), risorse tecnologiche e un network qualificato in cambio di equity. Non siamo un incubatore tradizionale: entriamo nel progetto come soci operativi, con skin in the game reale.`;
+
+  const introText2 = `Il presente documento rappresenta un'analisi approfondita del progetto "${analysis.ideaTitle}", condotta dal nostro team attraverso un processo strutturato che valuta il mercato di riferimento, il panorama competitivo, i rischi, le opportunita' di crescita e i possibili early adopter. L'obiettivo non e' dare un giudizio, ma fornire una mappa chiara per prendere decisioni informate e costruire qualcosa di solido.`;
+
+  const introText3 = `Ogni sezione del report contiene indicazioni operative e suggerimenti concreti. Ti incoraggiamo a leggere con attenzione non solo i punti di forza, ma soprattutto le aree di miglioramento e le strategie di mitigazione dei rischi: e' li' che si costruisce il vantaggio competitivo reale.`;
+
+  writeParagraph(introText1, 15, contentWidth);
+  yPos += 2;
+  writeParagraph(introText2, 15, contentWidth);
+  yPos += 2;
+  writeParagraph(introText3, 15, contentWidth);
+  yPos += 5;
+
+  // ========== SINTESI DELLA VALUTAZIONE ==========
+  checkNewPage(50);
+  yPos = addSectionHeader(doc, 'SINTESI DELLA VALUTAZIONE', yPos, [139, 92, 246]);
+
+  // Verdict reason as a highlighted box
+  doc.setFillColor(248, 250, 252);
+  doc.roundedRect(15, yPos, contentWidth, 5, 3, 3, 'F'); // placeholder height, will expand
+  doc.setDrawColor(139, 92, 246);
+  doc.setLineWidth(0.8);
+  doc.line(15, yPos, 15, yPos + 4); // left accent bar
   
-  doc.setFillColor(verdict.bg[0], verdict.bg[1], verdict.bg[2]);
-  doc.roundedRect(15, yPos, pageWidth - 30, 25, 3, 3, 'F');
-  
-  doc.setTextColor(255, 255, 255);
-  doc.setFontSize(14);
-  doc.setFont('helvetica', 'bold');
-  doc.text(`Verdetto: ${verdict.text}`, 20, yPos + 10);
-  
+  const reasonText = analysis.verdictReason || 'Analisi non disponibile';
   doc.setFontSize(10);
   doc.setFont('helvetica', 'normal');
-  const reasonLines = doc.splitTextToSize(analysis.verdictReason, pageWidth - 40);
-  doc.text(reasonLines.slice(0, 2), 20, yPos + 18);
+  doc.setTextColor(50, 50, 55);
+  const reasonLines: string[] = doc.splitTextToSize(reasonText, contentWidth - 16);
+  const boxHeight = reasonLines.length * 5 + 10;
   
-  yPos += 35;
-
-  // ========== SCORES WITH VISUAL BARS ==========
-  checkNewPage(90);
-  yPos = addSectionHeader(doc, 'SCORE COMPLESSIVO', yPos, [139, 92, 246]);
-
-  const scores = analysis.scores;
-  const scoreItems = [
-    { label: 'Market Size', value: scores.marketSize, color: [59, 130, 246] as [number, number, number] },
-    { label: 'Competition', value: scores.competition, color: [249, 115, 22] as [number, number, number] },
-    { label: 'Execution Risk', value: scores.executionRisk, color: [234, 179, 8] as [number, number, number] },
-    { label: 'Differentiation', value: scores.differentiation, color: [139, 92, 246] as [number, number, number] },
-    { label: 'Timing', value: scores.timing, color: [34, 197, 94] as [number, number, number] },
-  ];
-
-  const barWidth = 100;
-  const barHeight = 8;
-  const barX = 65;
-
-  scoreItems.forEach((item) => {
-    // Label
-    doc.setFontSize(10);
-    doc.setFont('helvetica', 'bold');
-    doc.setTextColor(60, 60, 60);
-    doc.text(item.label, 15, yPos + 6);
-
-    // Background bar
-    doc.setFillColor(230, 230, 235);
-    doc.roundedRect(barX, yPos, barWidth, barHeight, 2, 2, 'F');
-
-    // Filled bar
-    const fillWidth = (item.value / 100) * barWidth;
-    doc.setFillColor(item.color[0], item.color[1], item.color[2]);
-    doc.roundedRect(barX, yPos, Math.max(fillWidth, 4), barHeight, 2, 2, 'F');
-
-    // Score text
-    doc.setFontSize(10);
-    doc.setFont('helvetica', 'bold');
-    doc.setTextColor(item.color[0], item.color[1], item.color[2]);
-    doc.text(`${item.value}`, barX + barWidth + 5, yPos + 6);
-
-    yPos += 14;
+  // Redraw box with correct height
+  doc.setFillColor(248, 250, 252);
+  doc.roundedRect(15, yPos, contentWidth, boxHeight, 3, 3, 'F');
+  doc.setDrawColor(139, 92, 246);
+  doc.setLineWidth(1);
+  doc.line(15, yPos + 2, 15, yPos + boxHeight - 2); // left accent bar
+  
+  reasonLines.forEach((line: string, idx: number) => {
+    doc.text(line, 21, yPos + 8 + (idx * 5));
   });
-
-  // Overall score - larger display
-  yPos += 5;
-  const overallColor = scores.overall >= 70 ? [34, 197, 94] : scores.overall >= 40 ? [234, 179, 8] : [239, 68, 68];
-  doc.setFillColor(overallColor[0], overallColor[1], overallColor[2]);
-  doc.roundedRect(15, yPos, contentWidth, 18, 3, 3, 'F');
-  doc.setTextColor(255, 255, 255);
-  doc.setFontSize(13);
-  doc.setFont('helvetica', 'bold');
-  doc.text(`SCORE COMPLESSIVO: ${scores.overall}/100`, contentWidth / 2 + 15, yPos + 12, { align: 'center' });
-
-  yPos += 28;
+  
+  yPos += boxHeight + 10;
 
   // ========== COMPETITORS ==========
   checkNewPage(60);
@@ -411,6 +389,128 @@ export function generateAnalysisPDF(analysis: AnalysisResult): void {
     });
   }
 
+  // ========== CONCLUSIONE E RACCOMANDAZIONI ==========
+  doc.addPage();
+  yPos = 20;
+  yPos = addSectionHeader(doc, 'CONCLUSIONE E RACCOMANDAZIONI', yPos, [139, 92, 246]);
+
+  // Build dynamic recommendations based on analysis data
+  const scores = analysis.scores;
+  const recommendations: string[] = [];
+
+  // Market-based recommendations
+  if (scores.marketSize >= 70) {
+    recommendations.push(`Il mercato di riferimento per "${analysis.ideaTitle}" presenta dimensioni interessanti. Questo e' un asset importante, ma richiede una strategia di posizionamento chiara per catturare la quota di mercato accessibile (SOM). Consigliamo di validare il pricing con almeno 20 potenziali clienti prima di scalare.`);
+  } else {
+    recommendations.push(`La dimensione del mercato richiede attenzione. Ti consigliamo di esplorare segmenti adiacenti o verticali complementari per ampliare il mercato addressable. Una strategia efficace puo' essere partire da una nicchia specifica dove potete diventare leader indiscussi, per poi espandervi.`);
+  }
+
+  // Competition-based recommendations
+  if (scores.competition < 50) {
+    recommendations.push(`Il panorama competitivo e' significativo. Per costruire un vantaggio difendibile, concentrati su uno o piu' di questi elementi: (1) costruire un moat tecnologico con proprietà intellettuale o effetti di rete, (2) creare switching costs attraverso integrazioni profonde con i workflow dei clienti, (3) accumulare un data advantage che migliori il prodotto nel tempo. Non cercare di competere su tutti i fronti: scegli la battaglia che potete vincere.`);
+  } else {
+    recommendations.push(`La posizione competitiva e' favorevole. Per mantenerla, investi nella velocità di esecuzione e nella costruzione di barriere all'ingresso. Documenta e proteggi la proprieta' intellettuale, costruisci relazioni esclusive con i primi clienti e crea un brand riconoscibile nel tuo segmento.`);
+  }
+
+  // Execution risk recommendations
+  if (scores.executionRisk < 50) {
+    recommendations.push(`Il rischio di esecuzione e' un'area critica. Per mitigarlo: (1) riduci la complessità del prodotto iniziale - lancia con le feature minime che risolvono il problema core, (2) stabilisci milestone chiare ogni 2 settimane con metriche misurabili, (3) identifica le competenze mancanti nel team e colmale prima di scalare. Forge Studio puo' supportarti operativamente su tecnologia, marketing e finanza.`);
+  } else {
+    recommendations.push(`L'esecuzione appare fattibile. Per mantenere il ritmo: stabilisci un ciclo di sprint bisettimanali con obiettivi SMART, implementa analytics dal giorno uno per misurare ogni ipotesi, e crea un processo di feedback strutturato con i primi utenti.`);
+  }
+
+  // Differentiation recommendations
+  if (scores.differentiation < 50) {
+    recommendations.push(`La differenziazione e' l'area dove investire di piu'. Un prodotto simile agli altri lotta sempre sul prezzo. Chiediti: cosa puoi offrire che nessun altro puo' replicare facilmente? Puo' essere un'esperienza utente superiore, un accesso esclusivo a dati, una tecnologia proprietaria, o un modello di business innovativo. Identifica il tuo "10x factor" - quella cosa che rende il tuo prodotto 10 volte migliore dell'alternativa attuale.`);
+  } else {
+    recommendations.push(`La differenziazione e' un punto di forza. Comunicala in modo chiaro e misurabile: non "siamo migliori", ma "riduciamo i tempi del 70%" o "risparmiamo X euro all'anno". Ogni claim deve essere supportato da dati reali o testimonianze di clienti.`);
+  }
+
+  // Timing recommendations
+  if (scores.timing >= 60) {
+    recommendations.push(`Il timing di mercato e' favorevole. Questo e' un vantaggio temporaneo - sfruttalo con velocita' di esecuzione. Il "first mover advantage" esiste solo se accompagnato da una rapida acquisizione di clienti e costruzione di brand. Obiettivo: essere riconosciuti come riferimento del settore entro 12 mesi.`);
+  } else {
+    recommendations.push(`Il timing richiede una strategia di posizionamento piu' attenta. Valuta se il mercato e' pronto per la tua soluzione o se serve educazione del cliente. In questo caso, investi in content marketing e thought leadership per preparare il mercato mentre costruisci il prodotto.`);
+  }
+
+  // Write recommendations
+  recommendations.forEach((rec, idx) => {
+    checkNewPage(35);
+    
+    // Numbered recommendation
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(139, 92, 246);
+    doc.text(`${idx + 1}.`, 15, yPos);
+    
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(60, 60, 60);
+    const recLines: string[] = doc.splitTextToSize(rec, contentWidth - 10);
+    recLines.forEach((line: string) => {
+      checkNewPage(7);
+      doc.text(line, 22, yPos);
+      yPos += 5;
+    });
+    yPos += 5;
+  });
+
+  // ========== PROSSIMI PASSI IMMEDIATI ==========
+  checkNewPage(60);
+  yPos += 5;
+  yPos = addSectionHeader(doc, 'PROSSIMI PASSI IMMEDIATI', yPos, [34, 197, 94]);
+
+  const nextSteps = [
+    `Validazione del problema: Conduci 15-20 interviste con potenziali clienti target. Non presentare la soluzione - ascolta i loro problemi, quanto spendono per risolverli oggi, e cosa li frustra delle alternative attuali.`,
+    `MVP focalizzato: Identifica la singola feature che risolve il problema piu' urgente del tuo cliente ideale. Costruisci solo quella. Il primo obiettivo non e' un prodotto completo, ma una prova che qualcuno e' disposto a pagare.`,
+    `Metriche dal giorno uno: Definisci 3 KPI chiave (es. CAC, retention a 30 giorni, NPS) e implementa il tracking prima del lancio. Senza dati, ogni decisione e' un'opinione.`,
+    `Costruisci in pubblico: Documenta il percorso su LinkedIn o un blog di settore. Questo attira early adopter, potenziali partner e talenti. La trasparenza e' un asset competitivo sottovalutato.`,
+    `Definisci il modello di revenue: Anche se offri una versione gratuita iniziale, stabilisci fin da subito come monetizzerai. I clienti che pagano dal primo giorno sono il miglior segnale di product-market fit.`,
+  ];
+
+  nextSteps.forEach((step, idx) => {
+    checkNewPage(25);
+    
+    // Green checkmark circle
+    doc.setFillColor(34, 197, 94);
+    doc.circle(19, yPos - 1.5, 3, 'F');
+    doc.setFontSize(9);
+    doc.setTextColor(255, 255, 255);
+    doc.setFont('helvetica', 'bold');
+    doc.text(`${idx + 1}`, 17.5, yPos);
+    
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(9);
+    doc.setTextColor(50, 50, 55);
+    const stepLines: string[] = doc.splitTextToSize(step, contentWidth - 15);
+    stepLines.forEach((line: string) => {
+      checkNewPage(6);
+      doc.text(line, 26, yPos);
+      yPos += 4.5;
+    });
+    yPos += 4;
+  });
+
+  // ========== CLOSING NOTE ==========
+  checkNewPage(50);
+  yPos += 5;
+  
+  // Closing box
+  doc.setFillColor(139, 92, 246);
+  doc.roundedRect(15, yPos, contentWidth, 40, 3, 3, 'F');
+  
+  doc.setTextColor(255, 255, 255);
+  doc.setFontSize(12);
+  doc.setFont('helvetica', 'bold');
+  doc.text('Come possiamo aiutarti', 20, yPos + 10);
+  
+  doc.setFontSize(9);
+  doc.setFont('helvetica', 'normal');
+  const closingText = `Forge Studio non e' un consulente che ti da' un report e sparisce. Se crediamo nel progetto, ci mettiamo in gioco come co-founder operativi. Questo significa che il nostro successo e' legato al tuo. Se vuoi approfondire questa analisi o esplorare una collaborazione, contattaci per una call di 30 minuti senza impegno.`;
+  const closingLines: string[] = doc.splitTextToSize(closingText, contentWidth - 14);
+  closingLines.forEach((line: string, idx: number) => {
+    doc.text(line, 20, yPos + 18 + (idx * 4.5));
+  });
+
   // ========== FOOTER ==========
   const pageCount = doc.getNumberOfPages();
   for (let i = 1; i <= pageCount; i++) {
@@ -424,7 +524,7 @@ export function generateAnalysisPDF(analysis: AnalysisResult): void {
     // Footer text
     doc.setFontSize(8);
     doc.setTextColor(120, 120, 120);
-    doc.text('Virtual Venture Analyst', 15, 288);
+    doc.text('Forge Studio - Documento riservato', 15, 288);
     doc.text(
       `Pagina ${i} di ${pageCount}`,
       pageWidth - 15,
@@ -434,6 +534,6 @@ export function generateAnalysisPDF(analysis: AnalysisResult): void {
   }
 
   // Save the PDF
-  const fileName = `VVA_Report_${analysis.ideaTitle.replace(/[^a-zA-Z0-9]/g, '_').substring(0, 20)}_${new Date().toISOString().split('T')[0]}.pdf`;
+  const fileName = `Forge_Report_${analysis.ideaTitle.replace(/[^a-zA-Z0-9]/g, '_').substring(0, 20)}_${new Date().toISOString().split('T')[0]}.pdf`;
   doc.save(fileName);
 }
