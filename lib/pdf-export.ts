@@ -59,6 +59,9 @@ export function generateAnalysisPDF(analysis: AnalysisResult): void {
     yPos += 3;
   };
 
+  // Extract clean startup name (first part before descriptors)
+  const cleanName = analysis.ideaTitle.split(/\s+[e\u00e8]\s+|\s+-\s+|\s*:\s*/i)[0].trim();
+
   // ========== HEADER ==========
   doc.setFillColor(139, 92, 246); // Purple
   doc.rect(0, 0, pageWidth, 55, 'F');
@@ -69,12 +72,12 @@ export function generateAnalysisPDF(analysis: AnalysisResult): void {
   doc.setTextColor(255, 255, 255);
   doc.setFontSize(24);
   doc.setFont('helvetica', 'bold');
-  doc.text('FORGE STUDIO', 15, 22);
+  doc.text('STARTUP STUDIO', 15, 22);
   
   // Subtitle
   doc.setFontSize(13);
   doc.setFont('helvetica', 'normal');
-  doc.text(`Report di Analisi: ${analysis.ideaTitle}`, 15, 34);
+  doc.text(`Report di Analisi: ${cleanName}`, 15, 34);
   
   // Date on the right
   doc.setFontSize(10);
@@ -92,11 +95,11 @@ export function generateAnalysisPDF(analysis: AnalysisResult): void {
   // ========== INTRODUZIONE ==========
   yPos = addSectionHeader(doc, 'INTRODUZIONE', yPos, [139, 92, 246]);
 
-  const introText1 = `Forge Studio e' uno startup studio che opera come co-founder tecnico e strategico per startup early-stage. Il nostro modello si basa sulla selezione accurata di progetti ad alto potenziale, ai quali offriamo competenze operative (CTO, CMO, CFO), risorse tecnologiche e un network qualificato in cambio di equity. Non siamo un incubatore tradizionale: entriamo nel progetto come soci operativi, con skin in the game reale.`;
+  const introText1 = `Startup Studio e' uno startup studio che supporta founder ambiziosi nella costruzione di imprese solide e scalabili. Crediamo che ogni grande azienda nasca da un'idea coraggiosa e da un team disposto a mettersi in discussione. Il nostro ruolo e' affiancare i founder con analisi, competenze e visione strategica per trasformare il potenziale in risultati concreti.`;
 
-  const introText2 = `Il presente documento rappresenta un'analisi approfondita del progetto "${analysis.ideaTitle}", condotta dal nostro team attraverso un processo strutturato che valuta il mercato di riferimento, il panorama competitivo, i rischi, le opportunita' di crescita e i possibili early adopter. L'obiettivo non e' dare un giudizio, ma fornire una mappa chiara per prendere decisioni informate e costruire qualcosa di solido.`;
+  const introText2 = `Abbiamo analizzato in profondita' il progetto ${cleanName} attraverso un processo strutturato che valuta il mercato di riferimento, il panorama competitivo, i rischi, le opportunita' di crescita e i possibili early adopter. Questo report nasce con un unico obiettivo: fornirti una mappa chiara e onesta per prendere le decisioni giuste e costruire qualcosa di solido.`;
 
-  const introText3 = `Ogni sezione del report contiene indicazioni operative e suggerimenti concreti. Ti incoraggiamo a leggere con attenzione non solo i punti di forza, ma soprattutto le aree di miglioramento e le strategie di mitigazione dei rischi: e' li' che si costruisce il vantaggio competitivo reale.`;
+  const introText3 = `Ogni sezione contiene indicazioni operative e suggerimenti concreti. Ti incoraggiamo a leggere con attenzione non solo i punti di forza, ma soprattutto le aree di miglioramento e le strategie di mitigazione dei rischi: e' proprio li' che si costruisce il vantaggio competitivo reale. Questo documento e' uno strumento per te e per il tuo team - usalo come guida per i prossimi passi.`;
 
   writeParagraph(introText1, 15, contentWidth);
   yPos += 2;
@@ -400,7 +403,7 @@ export function generateAnalysisPDF(analysis: AnalysisResult): void {
 
   // Market-based recommendations
   if (scores.marketSize >= 70) {
-    recommendations.push(`Il mercato di riferimento per "${analysis.ideaTitle}" presenta dimensioni interessanti. Questo e' un asset importante, ma richiede una strategia di posizionamento chiara per catturare la quota di mercato accessibile (SOM). Consigliamo di validare il pricing con almeno 20 potenziali clienti prima di scalare.`);
+    recommendations.push(`Il mercato di riferimento per ${cleanName} presenta dimensioni interessanti. Questo e' un asset importante, ma richiede una strategia di posizionamento chiara per catturare la quota di mercato accessibile (SOM). Consigliamo di validare il pricing con almeno 20 potenziali clienti prima di scalare.`);
   } else {
     recommendations.push(`La dimensione del mercato richiede attenzione. Ti consigliamo di esplorare segmenti adiacenti o verticali complementari per ampliare il mercato addressable. Una strategia efficace puo' essere partire da una nicchia specifica dove potete diventare leader indiscussi, per poi espandervi.`);
   }
@@ -414,7 +417,7 @@ export function generateAnalysisPDF(analysis: AnalysisResult): void {
 
   // Execution risk recommendations
   if (scores.executionRisk < 50) {
-    recommendations.push(`Il rischio di esecuzione e' un'area critica. Per mitigarlo: (1) riduci la complessità del prodotto iniziale - lancia con le feature minime che risolvono il problema core, (2) stabilisci milestone chiare ogni 2 settimane con metriche misurabili, (3) identifica le competenze mancanti nel team e colmale prima di scalare. Forge Studio puo' supportarti operativamente su tecnologia, marketing e finanza.`);
+    recommendations.push(`Il rischio di esecuzione e' un'area critica. Per mitigarlo: (1) riduci la complessita' del prodotto iniziale - lancia con le feature minime che risolvono il problema core, (2) stabilisci milestone chiare ogni 2 settimane con metriche misurabili, (3) identifica le competenze mancanti nel team e colmale prima di scalare. Cerca mentor e advisor che possano guidarti operativamente su tecnologia, marketing e finanza.`);
   } else {
     recommendations.push(`L'esecuzione appare fattibile. Per mantenere il ritmo: stabilisci un ciclo di sprint bisettimanali con obiettivi SMART, implementa analytics dal giorno uno per misurare ogni ipotesi, e crea un processo di feedback strutturato con i primi utenti.`);
   }
@@ -491,24 +494,33 @@ export function generateAnalysisPDF(analysis: AnalysisResult): void {
   });
 
   // ========== CLOSING NOTE ==========
-  checkNewPage(50);
+  checkNewPage(70);
   yPos += 5;
   
   // Closing box
   doc.setFillColor(139, 92, 246);
-  doc.roundedRect(15, yPos, contentWidth, 40, 3, 3, 'F');
+  doc.roundedRect(15, yPos, contentWidth, 55, 3, 3, 'F');
   
   doc.setTextColor(255, 255, 255);
   doc.setFontSize(12);
   doc.setFont('helvetica', 'bold');
-  doc.text('Come possiamo aiutarti', 20, yPos + 10);
+  doc.text('Crediamo nel tuo progetto', 20, yPos + 10);
   
   doc.setFontSize(9);
   doc.setFont('helvetica', 'normal');
-  const closingText = `Forge Studio non e' un consulente che ti da' un report e sparisce. Se crediamo nel progetto, ci mettiamo in gioco come co-founder operativi. Questo significa che il nostro successo e' legato al tuo. Se vuoi approfondire questa analisi o esplorare una collaborazione, contattaci per una call di 30 minuti senza impegno.`;
-  const closingLines: string[] = doc.splitTextToSize(closingText, contentWidth - 14);
-  closingLines.forEach((line: string, idx: number) => {
-    doc.text(line, 20, yPos + 18 + (idx * 4.5));
+  const closingText1 = `${cleanName} ha degli elementi di valore reale e un potenziale che merita di essere sviluppato con determinazione. Questo report non e' un punto di arrivo, ma un punto di partenza: ogni area di miglioramento che abbiamo identificato e' un'opportunita' concreta per rafforzare il progetto e renderlo ancora piu' competitivo.`;
+  const closingText2 = `Ti incoraggiamo a lavorare sulle raccomandazioni contenute in questo documento e a continuare a costruire con ambizione. Startup Studio segue con attenzione i progetti che analizza e la porta e' sempre aperta: quando sentirai di aver raggiunto nuovi traguardi o vorrai un confronto, saremo felici di risentirti. In bocca al lupo - ci rivediamo presto.`;
+  const closingLines1: string[] = doc.splitTextToSize(closingText1, contentWidth - 14);
+  const closingLines2: string[] = doc.splitTextToSize(closingText2, contentWidth - 14);
+  let closingY = yPos + 18;
+  closingLines1.forEach((line: string) => {
+    doc.text(line, 20, closingY);
+    closingY += 4.5;
+  });
+  closingY += 2;
+  closingLines2.forEach((line: string) => {
+    doc.text(line, 20, closingY);
+    closingY += 4.5;
   });
 
   // ========== FOOTER ==========
@@ -524,7 +536,7 @@ export function generateAnalysisPDF(analysis: AnalysisResult): void {
     // Footer text
     doc.setFontSize(8);
     doc.setTextColor(120, 120, 120);
-    doc.text('Forge Studio - Documento riservato', 15, 288);
+    doc.text('Startup Studio - Documento riservato', 15, 288);
     doc.text(
       `Pagina ${i} di ${pageCount}`,
       pageWidth - 15,
@@ -534,6 +546,6 @@ export function generateAnalysisPDF(analysis: AnalysisResult): void {
   }
 
   // Save the PDF
-  const fileName = `Forge_Report_${analysis.ideaTitle.replace(/[^a-zA-Z0-9]/g, '_').substring(0, 20)}_${new Date().toISOString().split('T')[0]}.pdf`;
+  const fileName = `StartupStudio_Report_${cleanName.replace(/[^a-zA-Z0-9]/g, '_').substring(0, 20)}_${new Date().toISOString().split('T')[0]}.pdf`;
   doc.save(fileName);
 }
