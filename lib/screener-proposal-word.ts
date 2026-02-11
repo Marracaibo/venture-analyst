@@ -106,7 +106,7 @@ function parseMarkdownToDocx(rawContent: string): (Paragraph | Table)[] {
         rows.push(new TableRow({
           tableHeader: true,
           children: tableHeaders.map(header => new TableCell({
-            shading: { fill: COLORS.primary, type: ShadingType.SOLID },
+            shading: { fill: COLORS.primary, type: ShadingType.CLEAR },
             width: { size: 100 / tableHeaders.length, type: WidthType.PERCENTAGE },
             children: [new Paragraph({
               alignment: AlignmentType.CENTER,
@@ -130,7 +130,7 @@ function parseMarkdownToDocx(rawContent: string): (Paragraph | Table)[] {
         }
         rows.push(new TableRow({
           children: row.slice(0, tableHeaders.length).map(cell => new TableCell({
-            shading: { fill: idx % 2 === 0 ? COLORS.lightGray : COLORS.white, type: ShadingType.SOLID },
+            shading: { fill: idx % 2 === 0 ? COLORS.lightGray : COLORS.white, type: ShadingType.CLEAR },
             width: { size: 100 / tableHeaders.length, type: WidthType.PERCENTAGE },
             children: [new Paragraph({
               children: [new TextRun({ 
@@ -271,7 +271,7 @@ function parseMarkdownToDocx(rawContent: string): (Paragraph | Table)[] {
     else if (trimmed.startsWith('>')) {
       const text = trimmed.replace(/^>\s*/, '');
       elements.push(new Paragraph({
-        shading: { fill: 'E8F0FE', type: ShadingType.SOLID },
+        shading: { fill: 'E8F0FE', type: ShadingType.CLEAR },
         border: {
           left: { style: BorderStyle.SINGLE, size: 24, color: COLORS.primary }
         },
@@ -351,7 +351,7 @@ function createColorBar(text: string, fillColor: string, textColor: string, font
     },
     rows: [new TableRow({
       children: [new TableCell({
-        shading: { fill: fillColor, type: ShadingType.SOLID },
+        shading: { fill: fillColor, type: ShadingType.CLEAR },
         width: { size: 100, type: WidthType.PERCENTAGE },
         margins: { top: convertInchesToTwip(0.12), bottom: convertInchesToTwip(0.12), left: convertInchesToTwip(0.3), right: convertInchesToTwip(0.3) },
         children: [new Paragraph({
@@ -365,7 +365,7 @@ function createColorBar(text: string, fillColor: string, textColor: string, font
 // Helper: KPI metric cell
 function createMetricCell(label: string, value: string, fillColor: string = COLORS.lightGray): TableCell {
   return new TableCell({
-    shading: { fill: fillColor, type: ShadingType.SOLID },
+    shading: { fill: fillColor, type: ShadingType.CLEAR },
     width: { size: 50, type: WidthType.PERCENTAGE },
     margins: { top: convertInchesToTwip(0.1), bottom: convertInchesToTwip(0.1), left: convertInchesToTwip(0.2), right: convertInchesToTwip(0.2) },
     verticalAlign: VerticalAlign.CENTER,
@@ -447,7 +447,7 @@ export async function generateProposalWord(
     borders: noBorders,
     rows: [new TableRow({
       children: [new TableCell({
-        shading: { fill: COLORS.accent, type: ShadingType.SOLID },
+        shading: { fill: COLORS.accent, type: ShadingType.CLEAR },
         width: { size: 100, type: WidthType.PERCENTAGE },
         children: [new Paragraph({ spacing: { before: 0, after: 0 }, children: [new TextRun({ text: ' ', size: 4 })] })]
       })]
@@ -478,7 +478,7 @@ export async function generateProposalWord(
     borders: noBorders,
     rows: [new TableRow({
       children: [new TableCell({
-        shading: { fill: verdettoBg, type: ShadingType.SOLID },
+        shading: { fill: verdettoBg, type: ShadingType.CLEAR },
         width: { size: 100, type: WidthType.PERCENTAGE },
         margins: { top: convertInchesToTwip(0.08), bottom: convertInchesToTwip(0.08), left: convertInchesToTwip(0.3), right: convertInchesToTwip(0.3) },
         children: [new Paragraph({
@@ -705,7 +705,7 @@ export async function generateProposalWord(
 
   docChildren.push(new Paragraph({
     alignment: AlignmentType.CENTER,
-    shading: { fill: COLORS.lightGray, type: ShadingType.SOLID },
+    shading: { fill: COLORS.lightGray, type: ShadingType.CLEAR },
     spacing: { before: 200 },
     children: [new TextRun({
       text: `${input.nome} - Proposta di Partnership Strategica | ${dateFormatted} | RISERVATO`,

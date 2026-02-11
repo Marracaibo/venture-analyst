@@ -95,7 +95,7 @@ function parseMarkdownToDocx(rawContent: string): (Paragraph | Table)[] {
         rows.push(new TableRow({
           tableHeader: true,
           children: tableHeaders.map(header => new TableCell({
-            shading: { fill: COLORS.primary, type: ShadingType.SOLID },
+            shading: { fill: COLORS.primary, type: ShadingType.CLEAR },
             width: { size: 100 / tableHeaders.length, type: WidthType.PERCENTAGE },
             children: [new Paragraph({
               alignment: AlignmentType.CENTER,
@@ -117,7 +117,7 @@ function parseMarkdownToDocx(rawContent: string): (Paragraph | Table)[] {
         }
         rows.push(new TableRow({
           children: row.slice(0, tableHeaders.length).map(cell => new TableCell({
-            shading: { fill: idx % 2 === 0 ? COLORS.lightGray : COLORS.white, type: ShadingType.SOLID },
+            shading: { fill: idx % 2 === 0 ? COLORS.lightGray : COLORS.white, type: ShadingType.CLEAR },
             width: { size: 100 / tableHeaders.length, type: WidthType.PERCENTAGE },
             children: [new Paragraph({
               children: [new TextRun({ 
@@ -258,7 +258,7 @@ function parseMarkdownToDocx(rawContent: string): (Paragraph | Table)[] {
     else if (trimmed.startsWith('>')) {
       const text = trimmed.replace(/^>\s*/, '');
       elements.push(new Paragraph({
-        shading: { fill: 'E8F0FE', type: ShadingType.SOLID },
+        shading: { fill: 'E8F0FE', type: ShadingType.CLEAR },
         border: {
           left: { style: BorderStyle.SINGLE, size: 24, color: COLORS.primary }
         },
@@ -363,7 +363,7 @@ function createCoverPage(idea: StartupIdea, analysis: AnalysisResult): (Paragrap
       shading: { 
         fill: analysis.verdict === 'green' ? COLORS.success : 
               analysis.verdict === 'yellow' ? COLORS.warning : 'EF4444',
-        type: ShadingType.SOLID 
+        type: ShadingType.CLEAR 
       },
       children: [new TextRun({
         text: `  VERDETTO: ${analysis.verdict === 'green' ? 'PROMETTENTE' : analysis.verdict === 'yellow' ? 'CAUTO' : 'PROBLEMATICO'}  `,
