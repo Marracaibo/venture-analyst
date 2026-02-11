@@ -218,7 +218,7 @@ function parseMarkdownToDocx(rawContent: string): (Paragraph | Table)[] {
         children: [new TextRun({ 
           text: cleanText(trimmed.replace(/^###\s*/, '')), 
           bold: true,
-          color: COLORS.primary,
+          color: COLORS.dark,
           size: 24
         })]
       }));
@@ -226,10 +226,11 @@ function parseMarkdownToDocx(rawContent: string): (Paragraph | Table)[] {
       elements.push(new Paragraph({
         heading: HeadingLevel.HEADING_2,
         spacing: { before: 300, after: 150 },
+        border: { bottom: { style: BorderStyle.SINGLE, size: 2, color: 'E2E8F0' } },
         children: [new TextRun({ 
           text: cleanText(trimmed.replace(/^##\s*/, '')), 
           bold: true,
-          color: COLORS.primary,
+          color: COLORS.dark,
           size: 28
         })]
       }));
@@ -378,6 +379,91 @@ function createMetricCell(label: string, value: string, fillColor: string = COLO
         children: [new TextRun({ text: value, size: 24, color: COLORS.dark, bold: true, font: 'Calibri' })]
       })
     ]
+  });
+}
+
+// Helper: horizontal progress bar (simulated with two table cells)
+function createProgressBar(label: string, passed: boolean): TableRow {
+  const barColor = passed ? COLORS.success : 'E53E3E';
+  const statusText = passed ? 'SUPERATO' : 'NON SUPERATO';
+  const barWidth = passed ? 80 : 30;
+  return new TableRow({
+    children: [
+      // Label
+      new TableCell({
+        width: { size: 35, type: WidthType.PERCENTAGE },
+        margins: { top: convertInchesToTwip(0.06), bottom: convertInchesToTwip(0.06), left: convertInchesToTwip(0.15), right: convertInchesToTwip(0.1) },
+        borders: {
+          top: { style: BorderStyle.SINGLE, size: 1, color: 'E2E8F0' },
+          bottom: { style: BorderStyle.SINGLE, size: 1, color: 'E2E8F0' },
+          left: { style: BorderStyle.SINGLE, size: 1, color: 'E2E8F0' },
+          right: { style: BorderStyle.NONE, size: 0 },
+        },
+        verticalAlign: VerticalAlign.CENTER,
+        children: [new Paragraph({
+          children: [new TextRun({ text: label, size: 20, color: COLORS.dark, bold: true })]
+        })]
+      }),
+      // Bar
+      new TableCell({
+        width: { size: 45, type: WidthType.PERCENTAGE },
+        margins: { top: convertInchesToTwip(0.06), bottom: convertInchesToTwip(0.06), left: convertInchesToTwip(0.1), right: convertInchesToTwip(0.1) },
+        borders: {
+          top: { style: BorderStyle.SINGLE, size: 1, color: 'E2E8F0' },
+          bottom: { style: BorderStyle.SINGLE, size: 1, color: 'E2E8F0' },
+          left: { style: BorderStyle.NONE, size: 0 },
+          right: { style: BorderStyle.NONE, size: 0 },
+        },
+        verticalAlign: VerticalAlign.CENTER,
+        children: [new Paragraph({
+          children: [
+            new TextRun({ text: '\u2588'.repeat(Math.round(barWidth / 5)), size: 20, color: barColor }),
+            new TextRun({ text: '\u2591'.repeat(Math.round((100 - barWidth) / 5)), size: 20, color: 'E2E8F0' }),
+          ]
+        })]
+      }),
+      // Status
+      new TableCell({
+        width: { size: 20, type: WidthType.PERCENTAGE },
+        margins: { top: convertInchesToTwip(0.06), bottom: convertInchesToTwip(0.06), left: convertInchesToTwip(0.05), right: convertInchesToTwip(0.1) },
+        shading: { fill: passed ? 'F0FFF4' : 'FFF5F5', type: ShadingType.CLEAR },
+        borders: {
+          top: { style: BorderStyle.SINGLE, size: 1, color: 'E2E8F0' },
+          bottom: { style: BorderStyle.SINGLE, size: 1, color: 'E2E8F0' },
+          left: { style: BorderStyle.NONE, size: 0 },
+          right: { style: BorderStyle.SINGLE, size: 1, color: 'E2E8F0' },
+        },
+        verticalAlign: VerticalAlign.CENTER,
+        children: [new Paragraph({
+          alignment: AlignmentType.CENTER,
+          children: [new TextRun({ text: statusText, size: 16, color: passed ? COLORS.success : 'E53E3E', bold: true })]
+        })]
+      }),
+    ]
+  });
+}
+
+// Helper: create the full scorecard chart
+function createScorecardChart(filtersScore: NonNullable<ScreenerResult['filtersScore']>): Table {
+  const filters = [
+    { label: 'Problem Solving', passed: filtersScore.problemSolving },
+    { label: 'Market Analysis', passed: filtersScore.marketAnalysis },
+    { label: 'Differenziazione', passed: filtersScore.differentiation },
+    { label: 'Business Model', passed: filtersScore.businessModel },
+    { label: 'Traction', passed: filtersScore.traction },
+  ];
+
+  return new Table({
+    width: { size: 100, type: WidthType.PERCENTAGE },
+    borders: {
+      top: { style: BorderStyle.SINGLE, size: 1, color: 'E2E8F0' },
+      bottom: { style: BorderStyle.SINGLE, size: 1, color: 'E2E8F0' },
+      left: { style: BorderStyle.SINGLE, size: 1, color: 'E2E8F0' },
+      right: { style: BorderStyle.SINGLE, size: 1, color: 'E2E8F0' },
+      insideHorizontal: { style: BorderStyle.NONE, size: 0 },
+      insideVertical: { style: BorderStyle.NONE, size: 0 },
+    },
+    rows: filters.map(f => createProgressBar(f.label, f.passed)),
   });
 }
 
@@ -599,6 +685,74 @@ export async function generateProposalWord(
 
   docChildren.push(new Paragraph({ children: [] }));
   docChildren.push(new Paragraph({ children: [] }));
+
+  // ==========================================
+  // SCORECARD CHART
+  // ==========================================
+
+  if (result.filtersScore) {
+    docChildren.push(new Paragraph({
+      spacing: { before: 100, after: 150 },
+      children: [new TextRun({ text: 'Scorecard di Valutazione', bold: true, size: 26, color: COLORS.dark })]
+    }));
+    docChildren.push(new Paragraph({
+      spacing: { after: 100 },
+      children: [new TextRun({ text: `Filtri superati: ${result.filtersScore.passedCount} su 5`, size: 20, color: COLORS.gray })]
+    }));
+
+    docChildren.push(createScorecardChart(result.filtersScore));
+
+    docChildren.push(new Paragraph({ children: [] }));
+
+    // Summary verdict bar
+    const passRate = result.filtersScore.passedCount;
+    const summaryColor = passRate >= 4 ? COLORS.success : passRate >= 3 ? COLORS.warning : 'E53E3E';
+    const summaryLabel = passRate >= 4 ? 'Valutazione Positiva' : passRate >= 3 ? 'Valutazione Moderata' : 'Valutazione Critica';
+    docChildren.push(new Table({
+      width: { size: 100, type: WidthType.PERCENTAGE },
+      borders: {
+        top: { style: BorderStyle.NONE, size: 0 },
+        bottom: { style: BorderStyle.NONE, size: 0 },
+        left: { style: BorderStyle.NONE, size: 0 },
+        right: { style: BorderStyle.NONE, size: 0 },
+        insideHorizontal: { style: BorderStyle.NONE, size: 0 },
+        insideVertical: { style: BorderStyle.NONE, size: 0 },
+      },
+      rows: [new TableRow({
+        children: [
+          new TableCell({
+            width: { size: passRate * 20, type: WidthType.PERCENTAGE },
+            shading: { fill: summaryColor, type: ShadingType.CLEAR },
+            margins: { top: convertInchesToTwip(0.08), bottom: convertInchesToTwip(0.08), left: convertInchesToTwip(0.2), right: convertInchesToTwip(0.1) },
+            children: [new Paragraph({
+              children: [new TextRun({ text: `${summaryLabel} (${passRate}/5)`, bold: true, size: 18, color: COLORS.white })]
+            })]
+          }),
+          new TableCell({
+            width: { size: 100 - (passRate * 20), type: WidthType.PERCENTAGE },
+            shading: { fill: 'EDF2F7', type: ShadingType.CLEAR },
+            children: [new Paragraph({ children: [new TextRun({ text: ' ', size: 18 })] })]
+          }),
+        ]
+      })]
+    }));
+
+    docChildren.push(new Paragraph({ children: [] }));
+  }
+
+  // Kill switches (if any)
+  if (result.killSwitches && result.killSwitches.length > 0) {
+    docChildren.push(createColorBar('Kill Switches Identificati', 'E53E3E', COLORS.white, 20, true));
+    docChildren.push(new Paragraph({ spacing: { after: 80 }, children: [] }));
+    result.killSwitches.forEach(k => {
+      docChildren.push(new Paragraph({
+        bullet: { level: 0 },
+        spacing: { after: 60 },
+        children: [new TextRun({ text: k, size: 22, color: 'E53E3E', bold: true })]
+      }));
+    });
+    docChildren.push(new Paragraph({ children: [] }));
+  }
 
   // Strengths & Weaknesses boxes
   if (result.strengths && result.strengths.length > 0) {
