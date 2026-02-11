@@ -42,6 +42,27 @@ interface ProposalSection {
   content: string;
 }
 
+// Strip emoji and special unicode symbols from text (codePoint-based, no 'u' flag needed)
+function stripEmoji(text: string): string {
+  return Array.from(text).filter(char => {
+    const c = char.codePointAt(0) || 0;
+    if (c >= 0x1F600 && c <= 0x1F64F) return false;
+    if (c >= 0x1F300 && c <= 0x1F5FF) return false;
+    if (c >= 0x1F680 && c <= 0x1F6FF) return false;
+    if (c >= 0x1F1E0 && c <= 0x1F1FF) return false;
+    if (c >= 0x2600 && c <= 0x26FF) return false;
+    if (c >= 0x2700 && c <= 0x27BF) return false;
+    if (c >= 0xFE00 && c <= 0xFE0F) return false;
+    if (c >= 0x1F900 && c <= 0x1F9FF) return false;
+    if (c >= 0x1FA00 && c <= 0x1FA6F) return false;
+    if (c >= 0x1FA70 && c <= 0x1FAFF) return false;
+    if (c === 0x200D || c === 0x20E3) return false;
+    if (c >= 0xE0020 && c <= 0xE007F) return false;
+    if ([0x2605, 0x2606, 0x2B50, 0x2705, 0x274C, 0x26A1, 0x2728].includes(c)) return false;
+    return true;
+  }).join('').replace(/\s{2,}/g, ' ').trim();
+}
+
 // Parse markdown to docx elements
 function parseMarkdownToDocx(content: string): (Paragraph | Table)[] {
   const elements: (Paragraph | Table)[] = [];
@@ -398,7 +419,7 @@ export async function generateForgeProposalWord(
           bottom: { style: BorderStyle.SINGLE, size: 12, color: COLORS.primary }
         },
         children: [new TextRun({
-          text: section.title,
+          text: stripEmoji(section.title),
           bold: true,
           size: 32,
           color: COLORS.primary,
@@ -406,8 +427,8 @@ export async function generateForgeProposalWord(
       })
     );
 
-    // Section content
-    const contentElements = parseMarkdownToDocx(section.content);
+    // Section content (strip emoji from AI-generated text)
+    const contentElements = parseMarkdownToDocx(stripEmoji(section.content));
     allElements.push(...contentElements);
 
     // Page break after each section

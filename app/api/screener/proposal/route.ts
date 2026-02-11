@@ -54,7 +54,7 @@ Per ogni ruolo (CFO, CMO, CEO) scrivi:
    - Per CMO: Go-to-Market, Brand Building, Partnership Commerciali, Digital Marketing
    - Per CEO: Leadership Strategica, Gestione Stakeholder, Scaling Operations
 
-4. Tabella "Sinergie e Complementarietà del Team" con rating stelle (★) per:
+4. Tabella "Sinergie e Complementarietà del Team" con rating numerico (es. 4/5) per:
    - Fundraising
    - Conoscenza Settore ${SETTORI_CONFIG.find(s => s.id === input.verticale)?.label}
    - Governance e Leadership
@@ -620,7 +620,10 @@ IMPORTANTE:
 - Usa markdown per formattazione
 - Includi tabelle dove appropriato
 - Sii specifico e quantitativo
-- Tono autorevole ma accessibile`
+- Tono autorevole ma accessibile
+- NON usare MAI emoji o emoticon nel testo (no simboli come 🚀, 💰, ⚡, 📊, ✅, ecc.)
+- Usa solo testo e punteggiatura standard
+- Per le stelle nelle tabelle usa la parola "stelle" o numeri (es. "4/5") invece di simboli ★`
       }
     ]
   });
