@@ -615,15 +615,23 @@ async function generateSection(
 
 ${prompt}
 
-IMPORTANTE:
-- Scrivi in italiano professionale
-- Usa markdown per formattazione
-- Includi tabelle dove appropriato
-- Sii specifico e quantitativo
-- Tono autorevole ma accessibile
-- NON usare MAI emoji o emoticon nel testo (no simboli come 🚀, 💰, ⚡, 📊, ✅, ecc.)
-- Usa solo testo e punteggiatura standard
-- Per le stelle nelle tabelle usa la parola "stelle" o numeri (es. "4/5") invece di simboli ★`
+REGOLE DI FORMATTAZIONE (OBBLIGATORIE):
+- Scrivi in italiano professionale, tono autorevole ma accessibile
+- NON usare MAI emoji, emoticon o simboli speciali (no 🚀💰⚡📊✅★☆ ecc.)
+- Usa solo testo ASCII e punteggiatura standard
+- Per i rating usa numeri (es. "4/5") invece di simboli stelle
+- Ogni heading ## deve stare su una riga a se stante, separato da una riga vuota sopra e sotto
+- Ogni tabella deve avere una riga vuota prima e dopo
+- Le tabelle devono avere il formato:
+  [riga vuota]
+  | Colonna1 | Colonna2 |
+  |---|---|
+  | dato1 | dato2 |
+  [riga vuota]
+- NON mettere mai heading e tabelle sulla stessa riga
+- NON usare --- come separatore nel testo (solo nelle tabelle)
+- Sii specifico e quantitativo con numeri reali
+- Usa bullet points e liste numerate per i contenuti descrittivi`
       }
     ]
   });

@@ -63,8 +63,24 @@ function stripEmoji(text: string): string {
   }).join('').replace(/\s{2,}/g, ' ').trim();
 }
 
+// Pre-process AI-generated markdown to normalize structure
+function preprocessContent(content: string): string {
+  let result = content;
+  result = result.replace(/\s*-{3,}\s*/g, '\n\n');
+  result = result.replace(/([^\n])\s*(#{1,4}\s)/g, '$1\n$2');
+  result = result.replace(/([^\n|])\s*(\|[^|]+\|)/g, '$1\n$2');
+  result = result.replace(/\*\*\s*\*\*/g, '');
+  result = result.replace(/\n{3,}/g, '\n\n');
+  return result.trim();
+}
+
+function cleanText(text: string): string {
+  return text.replace(/\*\*/g, '').replace(/#{1,4}\s*/g, '').trim();
+}
+
 // Parse markdown to docx elements
-function parseMarkdownToDocx(content: string): (Paragraph | Table)[] {
+function parseMarkdownToDocx(rawContent: string): (Paragraph | Table)[] {
+  const content = preprocessContent(rawContent);
   const elements: (Paragraph | Table)[] = [];
   const lines = content.split('\n');
   let inTable = false;
@@ -101,11 +117,11 @@ function parseMarkdownToDocx(content: string): (Paragraph | Table)[] {
         }
         rows.push(new TableRow({
           children: row.slice(0, tableHeaders.length).map(cell => new TableCell({
-            shading: idx % 2 === 0 ? { fill: COLORS.lightGray, type: ShadingType.SOLID } : undefined,
+            shading: { fill: idx % 2 === 0 ? COLORS.lightGray : COLORS.white, type: ShadingType.SOLID },
             width: { size: 100 / tableHeaders.length, type: WidthType.PERCENTAGE },
             children: [new Paragraph({
               children: [new TextRun({ 
-                text: cell.trim(), 
+                text: cleanText(cell.trim()), 
                 size: 20,
                 color: COLORS.dark
               })]
@@ -148,11 +164,17 @@ function parseMarkdownToDocx(content: string): (Paragraph | Table)[] {
       continue;
     }
 
+    // Skip horizontal rules
+    if (/^-{3,}$/.test(trimmed) || /^\*{3,}$/.test(trimmed) || /^_{3,}$/.test(trimmed)) {
+      continue;
+    }
+
     // Table detection
     if (trimmed.startsWith('|')) {
+      if (trimmed.replace(/[^-|\s]/g, '').replace(/\s/g, '') === trimmed.replace(/\s/g, '')) continue;
       if (trimmed.includes('---')) continue;
       
-      const cells = trimmed.split('|').filter(c => c.trim()).map(c => c.replace(/\*\*/g, '').trim());
+      const cells = trimmed.split('|').filter(c => c.trim()).map(c => cleanText(c));
       
       if (!inTable) {
         inTable = true;
@@ -170,7 +192,7 @@ function parseMarkdownToDocx(content: string): (Paragraph | Table)[] {
       elements.push(new Paragraph({
         heading: HeadingLevel.HEADING_4,
         children: [new TextRun({ 
-          text: trimmed.replace(/^####\s*/, ''), 
+          text: cleanText(trimmed.replace(/^####\s*/, '')), 
           bold: true,
           color: COLORS.dark,
           size: 22
@@ -181,7 +203,7 @@ function parseMarkdownToDocx(content: string): (Paragraph | Table)[] {
         heading: HeadingLevel.HEADING_3,
         spacing: { before: 200, after: 100 },
         children: [new TextRun({ 
-          text: trimmed.replace(/^###\s*/, ''), 
+          text: cleanText(trimmed.replace(/^###\s*/, '')), 
           bold: true,
           color: COLORS.primary,
           size: 24
@@ -192,7 +214,7 @@ function parseMarkdownToDocx(content: string): (Paragraph | Table)[] {
         heading: HeadingLevel.HEADING_2,
         spacing: { before: 300, after: 150 },
         children: [new TextRun({ 
-          text: trimmed.replace(/^##\s*/, ''), 
+          text: cleanText(trimmed.replace(/^##\s*/, '')), 
           bold: true,
           color: COLORS.primary,
           size: 28
@@ -203,7 +225,7 @@ function parseMarkdownToDocx(content: string): (Paragraph | Table)[] {
         heading: HeadingLevel.HEADING_1,
         spacing: { before: 400, after: 200 },
         children: [new TextRun({ 
-          text: trimmed.replace(/^#\s*/, ''), 
+          text: cleanText(trimmed.replace(/^#\s*/, '')), 
           bold: true,
           color: COLORS.dark,
           size: 32

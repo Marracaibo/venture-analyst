@@ -246,7 +246,20 @@ export async function POST(request: NextRequest) {
         max_tokens: 2000,
         messages: [{
           role: 'user',
-          content: section.prompt(idea, analysis)
+          content: `Sei un consulente strategico esperto in startup e investimenti. Genera contenuto professionale per un documento di proposta.
+
+${section.prompt(idea, analysis)}
+
+REGOLE DI FORMATTAZIONE (OBBLIGATORIE):
+- Scrivi in italiano professionale, tono autorevole ma accessibile
+- NON usare MAI emoji, emoticon o simboli speciali (no stelle, frecce, check, ecc.)
+- Usa solo testo ASCII e punteggiatura standard
+- Per i rating usa numeri (es. "4/5") invece di simboli
+- Ogni heading ## deve stare su una riga a se stante, separato da una riga vuota sopra e sotto
+- Ogni tabella deve avere una riga vuota prima e dopo
+- NON mettere mai heading e tabelle sulla stessa riga
+- NON usare --- come separatore nel testo (solo nelle tabelle)
+- Sii specifico e quantitativo con numeri reali`
         }]
       });
 
